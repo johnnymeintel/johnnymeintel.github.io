@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Progress - Johnny Meintel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:         #f4efe6;
+      --bg-card:    #ece7dd;
+      --bg-hover:   #e5dfd4;
+      --blue:       #0043ce;
+      --green:      #198038;
+      --red:        #da1e28;
+      --purple:     #6929c4;
+      --text:       #161616;
+      --mid:        #393939;
+      --dim:        #6f6f6f;
+      --border:     rgba(0,0,0,0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0;
+      z-index: 100;
+      background: rgba(244,239,230,0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 6vw, 5rem);
+      height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .nav-back {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--blue); }
+
+    .nav-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--mid);
+    }
+
+    .nav-stats {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--dim);
+    }
+    .nav-stats span { color: var(--blue); }
+
+    /* LAYOUT */
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem clamp(1.5rem, 6vw, 5rem) 6rem;
+    }
+
+    .page-header {
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--blue);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .page-header h1 {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.4rem;
+    }
+
+    .page-header p {
+      color: var(--dim);
+      font-size: 0.88rem;
+    }
+
+    /* SECTION */
+    .tracker-section { margin-bottom: 3rem; }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-head h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .section-count {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--dim);
+      margin-left: auto;
+    }
+    .section-count .done-num { color: var(--blue); }
+
+    .progress-track {
+      height: 2px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 1px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--blue);
+      transition: width 0.4s ease;
+    }
+
+    /* SUBSECTION */
+    .subsection { margin-bottom: 1.5rem; }
+
+    .sub-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+      padding-left: 0.2rem;
+    }
+
+    /* ITEMS */
+    .items { display: flex; flex-direction: column; gap: 0.1rem; }
+
+    .items-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.1rem 1rem;
+    }
+
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      padding: 0.45rem 0.7rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+    }
+
+    .item:hover { background: rgba(0,0,0,0.03); }
+    .item input[type="checkbox"] { display: none; }
+
+    .check-box {
+      width: 15px; height: 15px;
+      border: 1.5px solid var(--dim);
+      border-radius: 2px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .item.done .check-box {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .check-box svg { display: none; width: 9px; height: 9px; }
+    .item.done .check-box svg { display: block; }
+
+    .item-name {
+      font-size: 0.84rem;
+      color: var(--mid);
+      line-height: 1.4;
+      transition: color 0.15s;
+    }
+
+    .item.done .item-name {
+      color: var(--dim);
+      text-decoration: line-through;
+      text-decoration-color: rgba(111,111,111,0.35);
+    }
+
+    /* CERT ITEMS */
+    .cert-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.65rem 0.8rem;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      margin-bottom: 0.3rem;
+    }
+
+    .cert-item.earned {
+      border-color: rgba(25,128,56,0.2);
+      background: rgba(25,128,56,0.04);
+    }
+
+    .cert-item.target-cert {
+      border-color: rgba(105,41,196,0.15);
+      background: rgba(105,41,196,0.02);
+    }
+
+    .cert-status {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      padding: 2px 7px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .cs-earned { background: rgba(25,128,56,0.1); color: var(--green); border: 1px solid rgba(25,128,56,0.25); }
+    .cs-ph     { background: rgba(82,82,82,0.06); color: var(--dim); border: 1px dashed rgba(82,82,82,0.25); }
+    .cs-target { background: rgba(105,41,196,0.08); color: var(--purple); border: 1px solid rgba(105,41,196,0.2); }
+    .cs-locked { background: rgba(111,111,111,0.06); color: var(--dim); border: 1px solid rgba(111,111,111,0.15); }
+
+    .cert-name { font-size: 0.88rem; font-weight: 500; }
+    .cert-meta { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--dim); }
+
+    /* EMPTY STATE */
+    .section-empty {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      color: rgba(111,111,111,0.45);
+      padding: 0.5rem 0.2rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* DOMAIN GRID */
+    .domain-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    @media (max-width: 640px) {
+      .items-2col { grid-template-columns: 1fr; }
+      .domain-grid { grid-template-columns: 1fr; }
+      .nav-stats { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-back">← portfolio</a>
+  <span class="nav-title">progress.html</span>
+  <span class="nav-stats"><span id="nav-total">0</span> / <span id="nav-max">0</span> complete</span>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <span class="page-eyebrow">Johnny Meintel</span>
+    <h1>Progress Tracker</h1>
+    <p>Certifications, lab platforms, and modules - checked off as completed.</p>
+  </div>
+
+  <!-- CERTIFICATIONS -->
+  <div class="tracker-section">
+    <div class="section-head">
+      <h2>Certifications</h2>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">CompTIA A+</div>
+        <div class="cert-meta">Core 1 (220-1101) · Core 2 (220-1102)</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">CompTIA Network+</div>
+        <div class="cert-meta">CompTIA</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">CompTIA Security+</div>
+        <div class="cert-meta">CompTIA</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">CompTIA Cloud+</div>
+        <div class="cert-meta">CompTIA</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">CompTIA Project+</div>
+        <div class="cert-meta">CompTIA</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">CompTIA CySA+</div>
+        <div class="cert-meta">CompTIA</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">CompTIA PenTest+</div>
+        <div class="cert-meta">CompTIA</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">ITIL v4</div>
+        <div class="cert-meta">Axelos</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">LPI Linux Essentials</div>
+        <div class="cert-meta">Linux Professional Institute</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">AWS Cloud Practitioner</div>
+        <div class="cert-meta">Amazon Web Services</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">Azure Fundamentals</div>
+        <div class="cert-meta">Microsoft (AZ-900)</div>
+      </div>
+    </div>
+
+    <div class="cert-item earned">
+      <span class="cert-status cs-earned">Earned</span>
+      <div>
+        <div class="cert-name">Google Cybersecurity Professional</div>
+        <div class="cert-meta">Google / Coursera</div>
+      </div>
+    </div>
+
+    <div class="cert-item target-cert">
+      <span class="cert-status cs-target">Target</span>
+      <div>
+        <div class="cert-name">eJPT - eLearnSecurity Junior Penetration Tester</div>
+        <div class="cert-meta">INE Security · entry-level practical exam</div>
+      </div>
+    </div>
+
+    <div class="cert-item target-cert">
+      <span class="cert-status cs-locked">Phase 4</span>
+      <div>
+        <div class="cert-name">OSCP - Offensive Security Certified Professional</div>
+        <div class="cert-meta">OffSec PEN-200 · 24-hour live exam</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OFFENSIVE - red team / exploitation -->
+  <div class="tracker-section" data-section="thm">
+    <div class="section-head">
+      <h2>TryHackMe</h2>
+      <span class="section-count"><span class="done-num" data-done="thm">0</span> / <span data-total="thm">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="thm" style="width:0%"></div></div>
+    <p class="section-empty">- add modules</p>
+  </div>
+
+  <div class="tracker-section" data-section="ps">
+    <div class="section-head">
+      <h2>PortSwigger Web Security Academy</h2>
+      <span class="section-count"><span class="done-num" data-done="ps">0</span> / <span data-total="ps">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="ps" style="width:0%"></div></div>
+    <p class="section-empty">- add labs</p>
+  </div>
+
+  <div class="tracker-section" data-section="htb">
+    <div class="section-head">
+      <h2>HackTheBox</h2>
+      <span class="section-count"><span class="done-num" data-done="htb">0</span> / <span data-total="htb">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="htb" style="width:0%"></div></div>
+    <p class="section-empty">- add machines</p>
+  </div>
+
+  <div class="tracker-section" data-section="btlo">
+    <div class="section-head">
+      <h2>Blue Team Labs Online</h2>
+      <span class="section-count"><span class="done-num" data-done="btlo">0</span> / <span data-total="btlo">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="btlo" style="width:0%"></div></div>
+    <p class="section-empty">- add investigations</p>
+  </div>
+
+  <div class="tracker-section" data-section="pentlab">
+    <div class="section-head">
+      <h2>PentesterLab</h2>
+      <span class="section-count"><span class="done-num" data-done="pentlab">0</span> / <span data-total="pentlab">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="pentlab" style="width:0%"></div></div>
+    <p class="section-empty">- add exercises</p>
+  </div>
+
+  <div class="tracker-section" data-section="vh">
+    <div class="section-head">
+      <h2>VulnHub</h2>
+      <span class="section-count"><span class="done-num" data-done="vh">0</span> / <span data-total="vh">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="vh" style="width:0%"></div></div>
+    <p class="section-empty">- add VMs</p>
+  </div>
+
+  <div class="tracker-section" data-section="tcm">
+    <div class="section-head">
+      <h2>TCM Security</h2>
+      <span class="section-count"><span class="done-num" data-done="tcm">0</span> / <span data-total="tcm">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="tcm" style="width:0%"></div></div>
+    <p class="section-empty">- add courses</p>
+  </div>
+
+  <div class="tracker-section" data-section="pg">
+    <div class="section-head">
+      <h2>Offensive Security - Proving Grounds</h2>
+      <span class="section-count"><span class="done-num" data-done="pg">0</span> / <span data-total="pg">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="pg" style="width:0%"></div></div>
+    <p class="section-empty">- add machines</p>
+  </div>
+
+  <div class="tracker-section" data-section="owasp">
+    <div class="section-head">
+      <h2>OWASP Labs</h2>
+      <span class="section-count"><span class="done-num" data-done="owasp">0</span> / <span data-total="owasp">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="owasp" style="width:0%"></div></div>
+    <p class="section-empty">- add targets (WebGoat · DVWA · Juice Shop)</p>
+  </div>
+
+  <div class="tracker-section" data-section="ctf">
+    <div class="section-head">
+      <h2>CTF Competitions</h2>
+      <span class="section-count"><span class="done-num" data-done="ctf">0</span> / <span data-total="ctf">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="ctf" style="width:0%"></div></div>
+    <p class="section-empty">- add events</p>
+  </div>
+
+  <!-- FUNDAMENTALS - math / scripting / networking -->
+  <div class="tracker-section" data-section="khan">
+    <div class="section-head">
+      <h2>Khan Academy - Mathematics</h2>
+      <span class="section-count"><span class="done-num" data-done="khan">0</span> / <span data-total="khan">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="khan" style="width:0%"></div></div>
+    <p class="section-empty">- add units</p>
+  </div>
+
+  <div class="tracker-section" data-section="scripting">
+    <div class="section-head">
+      <h2>Python &amp; PowerShell Scripting</h2>
+      <span class="section-count"><span class="done-num" data-done="scripting">0</span> / <span data-total="scripting">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="scripting" style="width:0%"></div></div>
+    <p class="section-empty">- add projects / exercises</p>
+  </div>
+
+  <div class="tracker-section" data-section="net">
+    <div class="section-head">
+      <h2>Networking Labs</h2>
+      <span class="section-count"><span class="done-num" data-done="net">0</span> / <span data-total="net">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="net" style="width:0%"></div></div>
+    <p class="section-empty">- add labs (Packet Tracer · GNS3 · home rack)</p>
+  </div>
+
+  <div class="tracker-section" data-section="cloud">
+    <div class="section-head">
+      <h2>Cloud Labs</h2>
+      <span class="section-count"><span class="done-num" data-done="cloud">0</span> / <span data-total="cloud">0</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" data-bar="cloud" style="width:0%"></div></div>
+    <p class="section-empty">- add AWS / Azure hands-on projects</p>
+  </div>
+
+</div>
+
+<script>
+  const STORE_KEY = 'ogz-progress-v1';
+
+  function save() {
+    const state = {};
+    document.querySelectorAll('input[type="checkbox"]').forEach((cb, i) => {
+      state[i] = cb.checked;
+    });
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  }
+
+  function load() {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    document.querySelectorAll('input[type="checkbox"]').forEach((cb, i) => {
+      if (state[i]) {
+        cb.checked = true;
+        cb.closest('.item').classList.add('done');
+      }
+    });
+  }
+
+  function updateStats() {
+    const sections = {};
+    let totalDone = 0, totalAll = 0;
+
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      const sec = cb.dataset.section;
+      if (!sec) return;
+      if (!sections[sec]) sections[sec] = { done: 0, total: 0 };
+      sections[sec].total++;
+      totalAll++;
+      if (cb.checked) { sections[sec].done++; totalDone++; }
+    });
+
+    Object.entries(sections).forEach(([sec, { done, total }]) => {
+      const bar = document.querySelector(`[data-bar="${sec}"]`);
+      const doneEl = document.querySelector(`[data-done="${sec}"]`);
+      const totEl = document.querySelector(`[data-total="${sec}"]`);
+      const pct = total > 0 ? (done / total * 100).toFixed(0) : 0;
+      if (bar) bar.style.width = pct + '%';
+      if (doneEl) doneEl.textContent = done;
+      if (totEl) totEl.textContent = total;
+    });
+
+    document.getElementById('nav-total').textContent = totalDone;
+    document.getElementById('nav-max').textContent = totalAll;
+  }
+
+  document.querySelectorAll('.item').forEach(item => {
+    item.addEventListener('click', () => {
+      const cb = item.querySelector('input[type="checkbox"]');
+      cb.checked = !cb.checked;
+      item.classList.toggle('done', cb.checked);
+      save();
+      updateStats();
+    });
+  });
+
+  load();
+  updateStats();
+</script>
+
+</body>
+</html>

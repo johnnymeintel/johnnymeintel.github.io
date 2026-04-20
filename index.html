@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Johnny Meintel - Security Researcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary:    #ffffff;
+      --bg-secondary:  #f1f3f5;
+      --bg-card:       #f7f8fa;
+      --bg-card-hover: #edf0f3;
+      --accent-blue:   #1d3461;
+      --accent-green:  #1a5c38;
+      --accent-red:    #9e1a1a;
+      --accent-purple: #3d1f6e;
+      --accent-amber:  #7a5c00;
+      --text-primary:  #0c1825;
+      --text-dim:      #5c6b7a;
+      --text-mid:      #2d3f50;
+      --border:        rgba(12,24,37,0.12);
+      --border-soft:   rgba(12,24,37,0.07);
+      --placeholder:   #6b7c8d;
+      --accent-cyan:   #1d3461;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'IBM Plex Sans', sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    #progress-bar {
+      position: fixed; top: 0; left: 0;
+      height: 2px;
+      background: var(--accent-blue);
+      width: 0%;
+      z-index: 1000;
+      transition: width 0.1s;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 6vw, 5rem);
+      height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .nav-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; align-items: center; }
+    .nav-links a {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+      font-weight: 400;
+    }
+    .nav-links a:hover { color: var(--accent-blue); }
+
+    /* Hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+    }
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--text-primary);
+      transition: all 0.2s;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 58px; left: 0; right: 0;
+      background: rgba(255,255,255,0.98);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 1.2rem clamp(1.5rem, 6vw, 5rem);
+      z-index: 99;
+      flex-direction: column;
+      gap: 0;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-size: 0.9rem;
+      color: var(--text-mid);
+      text-decoration: none;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-soft);
+      transition: color 0.15s;
+    }
+    .mobile-menu a:last-child { border-bottom: none; }
+    .mobile-menu a:hover { color: var(--accent-blue); }
+
+    /* ── SECTION BANDS ── */
+    .band { background: var(--bg-primary); }
+    .band-alt { background: var(--bg-secondary); }
+
+    /* ── SECTIONS ── */
+    section {
+      position: relative; z-index: 1;
+      padding: clamp(4.5rem, 9vw, 7rem) clamp(1.5rem, 8vw, 8rem);
+      max-width: 1140px; margin: 0 auto;
+    }
+
+    /* Hero section doesn't use the band wrapper */
+    #hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 5rem;
+      padding-top: 80px;
+      max-width: 1140px; margin: 0 auto;
+      padding-left: clamp(1.5rem, 8vw, 8rem);
+      padding-right: clamp(1.5rem, 8vw, 8rem);
+    }
+
+    .eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent-blue);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.7rem;
+      display: block;
+    }
+
+    h2 {
+      font-size: clamp(1.7rem, 4vw, 2.6rem);
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.3rem;
+      letter-spacing: -0.01em;
+    }
+
+    .divider {
+      width: 40px; height: 2px;
+      background: var(--accent-blue);
+      margin: 1rem 0 3rem;
+      opacity: 0.7;
+    }
+
+    /* ── PLACEHOLDER ── */
+    .ph {
+      color: var(--placeholder);
+      border-bottom: 1px dashed rgba(82,82,82,0.4);
+      padding: 0 2px;
+      font-size: inherit;
+    }
+
+    /* ── HERO STATUS ── */
+    .hero-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent-green);
+      margin-bottom: 1.4rem;
+    }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse-green 2.5s infinite;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .status-dot.amber {
+      background: var(--accent-amber);
+      animation: pulse-amber 2.5s infinite;
+    }
+
+    @keyframes pulse-amber {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .hero-name {
+      font-size: clamp(2.8rem, 5.5vw, 4.2rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+
+    .hero-name span { color: var(--accent-blue); }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--text-mid);
+      max-width: 420px;
+      line-height: 1.75;
+      margin-bottom: 2rem;
+    }
+
+    .hero-ctas { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+
+    .btn {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.65rem 1.4rem;
+      border-radius: 0;
+      text-decoration: none;
+      transition: all 0.15s;
+      cursor: pointer;
+      display: inline-block;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary { background: var(--accent-blue); color: #ffffff; }
+    .btn-primary:hover { background: #0031a9; }
+
+    .btn-ghost {
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      background: transparent;
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    /* ── FINDING CARD (hero visual) ── */
+    .finding-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    }
+
+    .fc-titlebar {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 0.65rem 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .fc-titlebar-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+
+    .fc-live {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--accent-green);
+    }
+
+    .fc-live-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse-green 2.5s infinite;
+    }
+
+    .fc-rows {
+      padding: 0.2rem 0;
+    }
+
+    .fc-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.6rem 1.1rem;
+      border-bottom: 1px solid var(--border-soft);
+      gap: 1rem;
+    }
+    .fc-row:last-child { border-bottom: none; }
+
+    .fc-key {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .fc-val {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-mid);
+      text-align: right;
+    }
+
+    .fc-val-high {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--accent-red);
+      letter-spacing: 0.08em;
+      text-align: right;
+    }
+
+    .fc-val-confirmed {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent-green);
+      text-align: right;
+    }
+
+    .fc-val-blue {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent-blue);
+      text-align: right;
+    }
+
+    .fc-code-block {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 0.9rem 1.1rem;
+    }
+
+    .fc-code-line {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      line-height: 1.7;
+      color: var(--text-dim);
+    }
+
+    .fc-code-line .fc-comment { color: rgba(111,111,111,0.55); font-style: italic; }
+    .fc-code-line .fc-strike  { color: var(--accent-red); text-decoration: line-through; opacity: 0.7; }
+    .fc-code-line .fc-insert  { color: var(--accent-green); }
+    .fc-code-line .fc-status  { color: var(--accent-green); font-weight: 600; }
+
+    /* ── CARDS ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.4rem;
+      transition: all 0.18s;
+      position: relative; overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: var(--card-accent, var(--accent-blue));
+      opacity: 0;
+      transition: opacity 0.18s;
+    }
+
+    .card:hover { background: var(--bg-card-hover); }
+    .card:hover::before { opacity: 1; }
+
+    .card-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-primary); }
+    .card p  { font-size: 0.83rem; color: var(--text-dim); line-height: 1.55; }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      padding: 2px 8px;
+      border-radius: 2px;
+      margin-top: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .badge-active   { background: rgba(25,128,56,0.1);  color: var(--accent-green);  border: 1px solid rgba(25,128,56,0.25); }
+    .badge-planned  { background: rgba(105,41,196,0.08); color: var(--accent-purple); border: 1px solid rgba(105,41,196,0.2); }
+    .badge-complete { background: rgba(0,67,206,0.08);  color: var(--accent-blue);   border: 1px solid rgba(0,67,206,0.2); }
+    .badge-locked   { background: rgba(111,111,111,0.08); color: var(--text-dim);    border: 1px solid rgba(111,111,111,0.2); }
+
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr minmax(300px, 380px);
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .about-text p {
+      color: var(--text-mid);
+      margin-bottom: 1.1rem;
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+
+    .about-text strong { color: var(--text-primary); font-weight: 600; }
+
+    .about-panel {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    /* SLIDESHOW — terminal window */
+    .slideshow-terminal {
+      width: 100%;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .terminal-bar {
+      background: #2b2b2b;
+      padding: 0.55rem 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .terminal-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .terminal-dot.red    { background: #ff5f57; }
+    .terminal-dot.yellow { background: #febc2e; }
+    .terminal-dot.green  { background: #28c840; }
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: #888;
+      margin-right: 1.5rem;
+    }
+    .slideshow {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      background: #0d1117;
+    }
+    .slideshow-slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+    }
+    .slideshow-slide.active { opacity: 1; }
+    .slideshow-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top left;
+      display: block;
+    }
+    .slideshow-dots {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 5px;
+    }
+    .slideshow-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      transition: background 0.3s;
+    }
+    .slideshow-dot.active { background: rgba(255,255,255,0.8); }
+
+    .ap-header {
+      background: var(--bg-card);
+      padding: 0.7rem 1.2rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.65rem 1.2rem;
+      border-bottom: 1px solid var(--border-soft);
+      font-size: 0.83rem;
+    }
+
+    .detail-row:last-child { border-bottom: none; }
+    .dk { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--text-dim); }
+    .dv { color: var(--text-mid); text-align: right; }
+
+    /* ── CERTS ── */
+    .cert-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0;
+    }
+
+    .cert-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 2px solid transparent;
+      border-radius: 2px;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      justify-content: space-between;
+      transition: background 0.15s;
+    }
+    .cert-card:hover { background: var(--bg-card-hover); }
+    .cert-card.cc-earned { border-left-color: var(--accent-green); }
+    .cert-card.cc-target {
+      border-left-color: var(--accent-purple);
+      background: transparent;
+      border-color: rgba(105,41,196,0.18);
+      border-left-color: var(--accent-purple);
+    }
+    .cert-card.cc-locked {
+      border-left-style: dashed;
+      background: transparent;
+      border-color: rgba(0,0,0,0.06);
+      border-left-color: rgba(111,111,111,0.25);
+    }
+    .cert-card.cc-target .cc-name,
+    .cert-card.cc-locked  .cc-name { color: var(--text-dim); }
+
+    .cert-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin: 0 0 1rem;
+    }
+    .cert-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .cert-section-rule {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .cc-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+    .cc-issuer {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      line-height: 1.3;
+    }
+    .cc-status {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.3rem;
+    }
+    .cc-earned .cc-status { color: var(--accent-green); }
+    .cc-incoming .cc-status { color: var(--accent-amber); }
+    .cc-target .cc-status { color: var(--accent-purple); }
+    .cc-locked .cc-status { color: var(--text-dim); }
+    .cert-card.cc-incoming {
+      border-left-color: var(--accent-amber);
+      background: rgba(122,92,0,0.04);
+      border-color: rgba(122,92,0,0.18);
+      border-left-color: var(--accent-amber);
+    }
+    .cert-card.cc-incoming .cc-name { color: var(--text-primary); }
+
+    /* ── TOOLS ── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .tool-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.4rem;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .tool-card:hover { background: var(--bg-card-hover); border-color: rgba(0,67,206,0.3); }
+
+    .tool-card.placeholder {
+      border-style: dashed;
+      border-color: rgba(82,82,82,0.3);
+      background: transparent;
+    }
+    .tool-card.placeholder:hover { border-color: rgba(82,82,82,0.5); }
+
+    .tool-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .tool-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .tool-card.placeholder .tool-name { color: var(--text-dim); }
+
+    .tool-link {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent-blue);
+      text-decoration: none;
+      padding: 3px 8px;
+      border: 1px solid rgba(0,67,206,0.25);
+      border-radius: 2px;
+      white-space: nowrap;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .tool-link:hover { background: rgba(0,67,206,0.06); border-color: var(--accent-blue); }
+
+    .tool-desc {
+      font-size: 0.83rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+    .tool-card.placeholder .tool-desc { opacity: 0.6; font-style: italic; }
+
+    .tool-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem; }
+
+    .tool-badge-wip {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 500;
+      color: var(--accent-amber);
+      background: rgba(122,92,0,0.08);
+      border: 1px solid rgba(122,92,0,0.25);
+      border-radius: 2px;
+      padding: 3px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.02em;
+    }
+
+    .tool-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      padding: 2px 7px;
+      border-radius: 2px;
+      background: rgba(0,0,0,0.04);
+      color: var(--text-dim);
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    /* ── TABLES ── */
+    .table-wrap { overflow-x: auto; margin-top: 1.5rem; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    thead tr { border-bottom: 2px solid var(--border); }
+
+    th {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.6rem 1rem;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    td {
+      padding: 0.8rem 1rem;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    td a { color: var(--accent-blue); text-decoration: none; }
+    td a:hover { text-decoration: underline; }
+    tr:hover td { background: rgba(0,67,206,0.02); }
+
+    .empty-row td {
+      text-align: center;
+      color: rgba(111,111,111,0.5);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      padding: 2.5rem;
+    }
+
+    /* ── STATS ── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .stat {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.2rem 1rem;
+      text-align: center;
+    }
+
+    .stat-n {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: block;
+    }
+
+    .stat-l { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+    /* ── CONTACT ── */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    @media (max-width: 700px) {
+      .contact-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .contact-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.3rem 1.4rem;
+      text-decoration: none;
+      transition: all 0.18s;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .contact-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-1px);
+    }
+    .contact-card.cc-email:hover   { border-color: #1d3461; }
+    .contact-card.cc-linkedin:hover { border-color: #0a66c2; }
+    .contact-card.cc-github:hover  { border-color: #333; }
+    .contact-card.cc-medium:hover  { border-color: #000000; }
+
+    .cc-icon {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      transition: color 0.18s;
+    }
+    .cc-email   .cc-icon { color: #1d3461; }
+    .cc-linkedin .cc-icon { color: #0a66c2; }
+    .cc-github  .cc-icon { color: #333; }
+    .cc-medium  .cc-icon { color: #000000; }
+
+    .cc-text { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+
+    .cc-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.63rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .cc-val {
+      font-size: 0.8rem;
+      color: var(--text-mid);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem clamp(1.5rem, 8vw, 8rem);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      position: relative; z-index: 1;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    /* ── REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      #hero { grid-template-columns: 1fr; gap: 3rem; }
+      .about-grid { grid-template-columns: 1fr; }
+      .stat-row { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+    }
+
+    @media (max-width: 480px) {
+      .stat-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <a href="#hero" class="nav-name">
+    <svg viewBox="0 0 44 28" width="44" height="28" aria-hidden="true" style="display:block;flex-shrink:0">
+      <rect x="0.75" y="0.75" width="42.5" height="26.5" fill="none" stroke="#1d3461" stroke-width="1.5"/>
+      <rect x="0.75" y="22.25" width="13" height="4.5" fill="#1d3461"/>
+      <text x="22" y="14" font-family="IBM Plex Mono,Courier New,monospace" font-size="12" font-weight="700" fill="#1d3461" text-anchor="middle" dominant-baseline="middle">JM</text>
+    </svg>
+    <span id="nav-typewriter"></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#labs">Research</a></li>
+    <li><a href="blog/index.html">Writing</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="benchmark.html" target="_blank" style="color:var(--accent-green)">Readiness ↗</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#about"      onclick="closeMobile()">About</a>
+  <a href="#skills"     onclick="closeMobile()">Skills</a>
+  <a href="#labs"       onclick="closeMobile()">Research</a>
+  <a href="blog/index.html" onclick="closeMobile()">Writing</a>
+  <a href="#contact"    onclick="closeMobile()">Contact</a>
+  <a href="benchmark.html" target="_blank" style="color:var(--accent-green)">Readiness ↗</a>
+</div>
+
+<!-- ── HERO ── -->
+<div id="hero">
+  <div>
+    <div style="margin-bottom:1.8rem">
+      <svg viewBox="0 0 88 56" width="88" height="56" aria-hidden="true">
+        <rect x="1" y="1" width="86" height="54" fill="none" stroke="#1d3461" stroke-width="2"/>
+        <rect x="1" y="45" width="26" height="10" fill="#1d3461"/>
+        <text x="44" y="30" font-family="IBM Plex Mono,Courier New,monospace" font-size="24" font-weight="700" fill="#1d3461" text-anchor="middle" dominant-baseline="middle">JM</text>
+      </svg>
+    </div>
+    <div class="hero-status">
+      <span class="status-dot"></span>
+      <a href="https://medium.com/@johnnymeintel" target="_blank" style="color:#2563eb; text-decoration:underline; font-weight:500;">HTB COAE study-along</a>
+    </div>
+    <h1 class="hero-name">Johnny<br><span>Meintel</span></h1>
+    <p class="hero-sub">
+      Detection engineering, offensive security research, and AI red teaming.
+    </p>
+    <div class="hero-ctas">
+      <a href="https://github.com/johnnymeintel" target="_blank" class="btn btn-primary">GitHub</a>
+      <a href="https://medium.com/@johnnymeintel" target="_blank" class="btn btn-primary">Medium</a>
+      <a href="https://linkedin.com/in/johnny-meintel-3a9280269/" target="_blank" class="btn btn-primary">LinkedIn</a>
+    </div>
+  </div>
+
+  <!-- Finding card - page-palette consistent -->
+  <div class="finding-card">
+    <div class="fc-titlebar">
+      <span class="fc-titlebar-label">application.log</span>
+      <span class="fc-live"><span class="fc-live-dot"></span>active</span>
+    </div>
+    <div class="fc-rows">
+      <div class="fc-row">
+        <span class="fc-key">target</span>
+        <span class="fc-val">cybersecurity role</span>
+      </div>
+      <div class="fc-row">
+        <span class="fc-key">endpoint</span>
+        <span class="fc-val-blue">POST /careers/apply</span>
+      </div>
+      <div class="fc-row">
+        <span class="fc-key">class</span>
+        <span class="fc-val">authorization bypass</span>
+      </div>
+      <div class="fc-row">
+        <span class="fc-key">finding</span>
+        <span class="fc-val">resume gap → priv escalation</span>
+      </div>
+      <div class="fc-row">
+        <span class="fc-key">severity</span>
+        <span class="fc-val-high">HIGH</span>
+      </div>
+      <div class="fc-row">
+        <span class="fc-key">status</span>
+        <span class="fc-val-confirmed">✓ submitted</span>
+      </div>
+    </div>
+    <div class="fc-code-block">
+      <div class="fc-code-line"><span class="fc-comment">// role modified in application body</span></div>
+      <div class="fc-code-line">"title": <span class="fc-strike">"unemployed"</span> <span class="fc-insert">"Detection Engineer"</span></div>
+      <div class="fc-code-line">"access": <span class="fc-strike">"none"</span> <span class="fc-insert">"research-active"</span></div>
+      <div class="fc-code-line">&nbsp;</div>
+      <div class="fc-code-line"><span class="fc-comment">// escalation accepted server-side</span></div>
+      <div class="fc-code-line"><span class="fc-status">200 OK</span> → &#123; "interview": "scheduled" &#125;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ABOUT ── -->
+<div class="band-alt">
+<section id="about">
+  <span class="eyebrow">About</span>
+  <div class="divider"></div>
+
+  <div class="about-grid reveal">
+    <div class="about-text">
+      <p>
+        1 year of tech support experience, 2 degrees, and a dozen certifications. Currently pursuing my 2nd M.S. in Software Engineering / AI Engineering from WGU while working as an AI Annotator. Seeking entry level cybersecurity role.
+      </p>
+      <p>
+        Hands-on security experience built through independent lab work. Designed and deployed a full enterprise simulation environment including an Active Directory domain, Splunk SIEM, and a dedicated attack platform, then ran the full offensive and defensive cycle: simulating attacks, writing detection rules, and tuning alerts. Currently pursuing HTB COAE and active on HackerOne.
+      </p>
+    </div>
+
+    <div class="slideshow-terminal">
+      <div class="terminal-bar">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+        <span class="terminal-title">~/research</span>
+      </div>
+    <div class="slideshow" id="about-slideshow">
+      <!-- slides and dots generated by JS below -->
+    </div>
+    </div><!-- end slideshow-terminal -->
+
+  </div>
+</section>
+</div>
+
+<!-- ── SKILLS & CREDENTIALS ── -->
+<section id="skills">
+  <span class="eyebrow">Skills & Credentials</span>
+  <h2>Tooling</h2>
+  <div class="divider"></div>
+
+  <p class="reveal" style="color:var(--text-dim); font-size:0.9rem; max-width:660px; margin-bottom:0.5rem; line-height:1.8;">
+    A mix of completed projects and work in progress, covering detection engineering, security tooling, and recon automation.
+  </p>
+
+  <div class="tools-grid reveal">
+
+    <!--
+    ═══════════════════════════════════════════════════════
+    TEMPLATE - copy this block and fill it in for each tool
+    ═══════════════════════════════════════════════════════
+    <div class="tool-card">
+      <div class="tool-header">
+        <span class="tool-name">tool-name</span>
+        <a href="https://github.com/johnnymeintel/REPO" target="_blank" class="tool-link">GitHub →</a>
+      </div>
+      <p class="tool-desc">One or two sentences: what problem this solves, what it takes as input, what it outputs. Written for someone reading it without context.</p>
+      <div class="tool-tags">
+        <span class="tool-tag">Python</span>
+        <span class="tool-tag">recon</span>
+        <span class="tool-tag">subdomain</span>
+      </div>
+    </div>
+    -->
+
+    <!-- Homelab repos -->
+    <div class="tool-card">
+      <div class="tool-header">
+        <span class="tool-name">homelab-detection-lab</span>
+        <a href="https://github.com/johnnymeintel/homelab-detection-lab" target="_blank" class="tool-link">GitHub →</a>
+      </div>
+      <p class="tool-desc">Custom Wazuh detection rules and Splunk SPL queries built against a 7-VM Windows domain lab. Covers lateral movement, privilege escalation, persistence, and credential access. Includes diagnostic scripts for both Splunk indexer and Universal Forwarder.</p>
+      <div class="tool-tags">
+        <span class="tool-tag">Wazuh</span>
+        <span class="tool-tag">Splunk</span>
+        <span class="tool-tag">detection engineering</span>
+        <span class="tool-tag">PowerShell</span>
+      </div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <span class="tool-name">homelab-assessment-scripts</span>
+        <a href="https://github.com/johnnymeintel/homelab-assessment-scripts" target="_blank" class="tool-link">GitHub →</a>
+      </div>
+      <p class="tool-desc">PowerShell assessment and hardening scripts for a Windows domain homelab - domain controller baseline, IIS/MySQL application server review, workstation security audit, ASR rule enforcement, and AD tiering with LDAPS. Each script outputs a structured findings report.</p>
+      <div class="tool-tags">
+        <span class="tool-tag">PowerShell</span>
+        <span class="tool-tag">Active Directory</span>
+        <span class="tool-tag">hardening</span>
+        <span class="tool-tag">Windows</span>
+      </div>
+    </div>
+
+    <!-- In build queue -->
+    <div class="tool-card placeholder">
+      <div class="tool-header">
+        <span class="tool-name">recon-logger-101.py</span>
+        <span class="tool-badge-wip" style="display:inline-flex; align-items:center; gap:0.35rem;"><span class="status-dot amber" style="width:5px;height:5px;flex-shrink:0;"></span>in progress</span>
+      </div>
+      <p class="tool-desc">Modular recon pipeline - subdomain enumeration via subfinder, live host probing with httpx, response header fingerprinting, and tech stack detection. Built for HackerOne bug bounty recon.</p>
+      <div class="tool-tags">
+        <span class="tool-tag">Python</span>
+        <span class="tool-tag">recon</span>
+        <span class="tool-tag">bug bounty</span>
+      </div>
+    </div>
+
+    <div class="tool-card placeholder">
+      <div class="tool-header">
+        <span class="tool-name">prompt-injection-suite.py</span>
+        <span class="tool-badge-wip" style="display:inline-flex; align-items:center; gap:0.35rem;"><span class="status-dot amber" style="width:5px;height:5px;flex-shrink:0;"></span>in progress</span>
+      </div>
+      <p class="tool-desc">Categorised prompt injection payload library with a test runner for any OpenAI-compatible endpoint - direct injection, indirect via RAG context, jailbreaks, data exfil probes, and a response scoring engine.</p>
+      <div class="tool-tags">
+        <span class="tool-tag">Python</span>
+        <span class="tool-tag">AI red team</span>
+        <span class="tool-tag">LLM</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Certifications ── -->
+  <div style="margin-top:4rem" class="reveal">
+
+    <div class="cert-section-header">
+      <span class="cert-section-label">Earned</span>
+      <span class="cert-section-rule"></span>
+    </div>
+    <div class="cert-grid">
+
+      <div class="cert-card cc-earned">
+        <span class="cc-name">CompTIA A+</span>
+        <span class="cc-issuer">CompTIA</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">CompTIA Network+</span>
+        <span class="cc-issuer">CompTIA</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">CompTIA Security+</span>
+        <span class="cc-issuer">CompTIA</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">CompTIA Cloud+</span>
+        <span class="cc-issuer">CompTIA</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">CompTIA CySA+</span>
+        <span class="cc-issuer">CompTIA</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">CompTIA PenTest+</span>
+        <span class="cc-issuer">CompTIA</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">CompTIA Project+</span>
+        <span class="cc-issuer">CompTIA</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">ITIL v4</span>
+        <span class="cc-issuer">Axelos</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">LPI Linux Essentials</span>
+        <span class="cc-issuer">Linux Professional Institute</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">AWS Cloud Practitioner</span>
+        <span class="cc-issuer">Amazon Web Services</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">Azure Fundamentals</span>
+        <span class="cc-issuer">Microsoft · AZ-900</span>
+        <span class="cc-status">Earned</span>
+      </div>
+      <div class="cert-card cc-earned">
+        <span class="cc-name">Google Cybersecurity Professional</span>
+        <span class="cc-issuer">Google / Coursera</span>
+        <span class="cc-status">Earned</span>
+      </div>
+
+    </div>
+
+    <div class="cert-section-header" style="margin-top:2rem">
+      <span class="cert-section-label">Incoming</span>
+      <span class="cert-section-rule"></span>
+    </div>
+    <div class="cert-grid">
+
+      <div class="cert-card cc-incoming">
+        <span class="cc-name">HTB COAE</span>
+        <span class="cc-issuer">HackTheBox · Certified Offensive AI Expert</span>
+        <span class="cc-status" style="display:flex; align-items:center; gap:0.4rem;"><span class="status-dot amber"></span>In progress · JUL 2026</span>
+      </div>
+
+    </div>
+
+    <div class="cert-section-header" style="margin-top:2rem">
+      <span class="cert-section-label">Planned</span>
+      <span class="cert-section-rule"></span>
+    </div>
+    <div class="cert-grid">
+
+      <div class="cert-card cc-target">
+        <span class="cc-name">AI-102</span>
+        <span class="cc-issuer">Microsoft · Azure AI Engineer Associate</span>
+        <span class="cc-status">Target</span>
+      </div>
+      <div class="cert-card cc-target">
+        <span class="cc-name">OSCP</span>
+        <span class="cc-issuer">OffSec · PEN-200</span>
+        <span class="cc-status">Target</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── LAB WORK ── -->
+<div class="band-alt">
+<section id="labs">
+  <span class="eyebrow">Research</span>
+  <h2>Lab Work & Writeups</h2>
+  <div class="divider"></div>
+
+  <p class="reveal" style="color:var(--text-dim); font-size:0.9rem; max-width:660px; margin-bottom:2.5rem; line-height:1.8;">
+    Active work across homelab attack-defend research, HTB, and PortSwigger. Published articles on Medium covering detection engineering, AD exploitation, and offensive tooling.
+  </p>
+
+  <!-- ── rooted. preview ── -->
+  <div class="reveal" style="margin-bottom:3rem;">
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.2rem;">
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--text-dim);">rooted.</span>
+      <span style="flex:1; height:1px; background:var(--border);"></span>
+      <a href="rooted.html" style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent-blue); text-decoration:none;">full tracker →</a>
+    </div>
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:4px; padding:1.4rem 1.6rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1.2rem;">
+      <div style="display:flex; flex-direction:column; gap:0.3rem;">
+        <span style="display:flex; align-items:center; gap:0.45rem; font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--text-dim); letter-spacing:0.05em; text-transform:uppercase;"><span class="status-dot"></span>Currently working on</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.9rem; font-weight:600; color:var(--text-primary);">HTB Starting Point <span style="color:var(--accent-amber);">· Tier 2</span></span>
+      </div>
+      <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:0.15rem;">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:1.3rem; font-weight:700; color:var(--text-primary); line-height:1;">18</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:0.58rem; color:var(--text-dim); letter-spacing:0.1em; text-transform:uppercase;">boxes rooted</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:0.15rem;">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:1.3rem; font-weight:700; color:var(--text-primary); line-height:1;">2/3</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:0.58rem; color:var(--text-dim); letter-spacing:0.1em; text-transform:uppercase;">SP tiers done</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Latest post preview -->
+  <div class="reveal" style="margin-bottom:3rem;">
+    <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:1rem;">
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--text-dim); letter-spacing:0.12em; text-transform:uppercase;">Latest Post</span>
+      <span style="flex:1; height:1px; background:var(--border);"></span>
+    </div>
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:4px; padding:1.6rem; border-left:2px solid var(--accent-blue);">
+      <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.7rem; flex-wrap:wrap;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--text-dim);">2026-04-15</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.6rem; padding:2px 7px; border-radius:2px; background:var(--bg-secondary); color:var(--text-dim); border:1px solid var(--border-soft);">bug-bounty</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.6rem; padding:2px 7px; border-radius:2px; background:var(--bg-secondary); color:var(--text-dim); border:1px solid var(--border-soft);">offensive</span>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/bug-bounty-101-1-building-a-basic-recon-logger-in-python-7aa6f3ce2d2b" target="_blank" style="font-size:1.05rem; font-weight:600; color:var(--text-primary); text-decoration:none; display:block; margin-bottom:0.6rem; line-height:1.3; transition:color 0.15s;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='var(--text-primary)'">Bug Bounty 101.1 - Building a Basic Recon Logger in Python</a>
+      <p style="font-size:0.87rem; color:var(--text-dim); line-height:1.7; max-width:620px; margin-bottom:1rem;">Python HTTP header recon tool for active bug bounty workflows - checks for missing security headers, outdated server fingerprints (PHP 5.x, Apache 2.2, IIS 6/7), and wildcard CORS misconfigurations. First in a practical bug bounty tooling series.</p>
+      <div style="display:flex; align-items:center; gap:1.5rem;">
+        <a href="https://medium.com/@johnnymeintel/bug-bounty-101-1-building-a-basic-recon-logger-in-python-7aa6f3ce2d2b" target="_blank" style="font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--accent-blue); text-decoration:none;">Read on Medium →</a>
+        <a href="blog/index.html" style="font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--text-dim); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='var(--text-dim)'">All posts →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap reveal" style="margin-top:3rem">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Platform</th><th>Target</th>
+          <th>Vuln Class</th><th>Summary</th><th>Writeup</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>2026-01-10</td>
+          <td>Homelab</td>
+          <td>DC01 - Windows Network Share</td>
+          <td>SMB · lateral movement</td>
+          <td>Attacked overpermissioned share via smbclient; detected via Event 5145 in Splunk; hardened SMB signing and ACLs</td>
+          <td><a href="https://medium.com/@johnnymeintel/attacking-and-defending-a-windows-network-share-ff61b8d4cb7b" target="_blank">Read →</a></td>
+        </tr>
+        <tr>
+          <td>2025-12-08</td>
+          <td>Homelab</td>
+          <td>APP01 - IIS / MySQL</td>
+          <td>Web misconfig · SQLi · priv esc</td>
+          <td>IIS directory browsing + MySQL exposed → web shell → app pool running as Domain Admin → full domain compromise</td>
+          <td><a href="https://medium.com/@johnnymeintel/iis-misconfigurations-mysql-exposure-and-the-path-to-domain-admin-14db9fbe9df8" target="_blank">Read →</a></td>
+        </tr>
+        <tr>
+          <td>2025-11-28</td>
+          <td>Homelab</td>
+          <td>DC01 - Domain Controller Assessment</td>
+          <td>AD · password policy · NTP</td>
+          <td>PowerShell baseline assessment: excessive DA membership, zero lockout threshold, NTP misconfiguration, legacy NetBIOS exposure</td>
+          <td><a href="https://medium.com/@johnnymeintel/windows-server-2022-domain-controller-assessment-hostname-dc01-5a4d537f0b05" target="_blank">Read →</a></td>
+        </tr>
+        <tr>
+          <td>2025-11-28</td>
+          <td>Homelab</td>
+          <td>APP01 - Web Server Assessment</td>
+          <td>IIS · MySQL · service accounts</td>
+          <td>HTTP without TLS, MySQL on 0.0.0.0, SMB/WinRM exposed, three overprivileged service accounts identified</td>
+          <td><a href="https://medium.com/@johnnymeintel/windows-server-2022-web-server-db-assessment-hostname-app01-139b9980c17a" target="_blank">Read →</a></td>
+        </tr>
+        <tr>
+          <td>2025-11-27</td>
+          <td>Homelab</td>
+          <td>WIN11-MGR1 - Workstation Assessment</td>
+          <td>Windows hardening · AD</td>
+          <td>AutoAdminLogon with DA credentials in plaintext registry, UAC disabled, RDP open, Kerberoastable service accounts - critical chain to domain compromise</td>
+          <td><a href="https://medium.com/@johnnymeintel/windows-11-security-assessment-hostname-win11-mgr1-e8326d82750e" target="_blank">Read →</a></td>
+        </tr>
+        <tr>
+          <td>2025-11-20</td>
+          <td>Homelab</td>
+          <td>cjcs.local - AD Attack Chain</td>
+          <td>AD · Kerberoasting · DCSync</td>
+          <td>Network access → CrackMapExec → Responder NTLM capture → Hashcat → Kerberoasting via impacket-GetUserSPNs → DCSync - full domain compromise documented</td>
+          <td><a href="https://medium.com/@johnnymeintel/active-directory-attack-chain-from-network-access-to-domain-compromise-0df6ef3f9a37" target="_blank">Read →</a></td>
+        </tr>
+        <tr>
+          <td>2025-10-30</td>
+          <td>Homelab</td>
+          <td>DC01 - AD Hardening (SOC 2)</td>
+          <td>GRC · AD · LDAPS</td>
+          <td>SOC 2 CC6.1/CC7.1/CC8.1 gap remediation - account tiering, Wazuh rule 100010 for privileged login detection, LDAPS via internal CA on port 636</td>
+          <td><a href="https://medium.com/@johnnymeintel/active-directory-least-privilege-ldaps-enforcement-8359832c91c3" target="_blank">Read →</a></td>
+        </tr>
+        <tr>
+          <td>2025-10-08</td>
+          <td>Homelab</td>
+          <td>SIEM01 - Wazuh Build</td>
+          <td>SIEM · detection engineering</td>
+          <td>Wazuh 4.14.0 on Ubuntu 24.04 with agents on DC01/APP01/MGR1; custom brute force and password spray rules; MITRE ATT&CK mapped alerts</td>
+          <td><a href="https://medium.com/@johnnymeintel/i-built-my-own-siem-on-my-desktop-786389b41abd" target="_blank">Read →</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+</div>
+
+<!-- ── CONTACT ── -->
+<div class="band-alt">
+<section id="contact">
+  <span class="eyebrow">Contact</span>
+  <h2>Get in Touch</h2>
+  <div class="divider"></div>
+
+  <div class="contact-grid reveal">
+
+    <a href="mailto:johnnymeintel@gmail.com" class="contact-card cc-email">
+      <svg class="cc-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+      </svg>
+      <div class="cc-text">
+        <span class="cc-label">Email</span>
+        <span class="cc-val">johnnymeintel@gmail.com</span>
+      </div>
+    </a>
+
+    <a href="https://linkedin.com/in/johnny-meintel-3a9280269/" target="_blank" class="contact-card cc-linkedin">
+      <svg class="cc-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+      </svg>
+      <div class="cc-text">
+        <span class="cc-label">LinkedIn</span>
+        <span class="cc-val">johnny-meintel</span>
+      </div>
+    </a>
+
+    <a href="https://github.com/johnnymeintel" target="_blank" class="contact-card cc-github">
+      <svg class="cc-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+      </svg>
+      <div class="cc-text">
+        <span class="cc-label">GitHub</span>
+        <span class="cc-val">johnnymeintel</span>
+      </div>
+    </a>
+
+    <a href="https://medium.com/@johnnymeintel" target="_blank" class="contact-card cc-medium">
+      <svg class="cc-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="24" height="24" rx="4" fill="#000000"/>
+        <text x="12" y="17.5" text-anchor="middle" font-family="Georgia, serif" font-size="14" font-weight="900" fill="#ffffff">M</text>
+      </svg>
+      <div class="cc-text">
+        <span class="cc-label">Medium</span>
+        <span class="cc-val">@johnnymeintel</span>
+      </div>
+    </a>
+
+  </div>
+</section>
+</div>
+
+<footer>
+  <span>Johnny Meintel &nbsp;<span style="font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--text-dim); letter-spacing:0.12em; opacity:0.6;">© 2026</span></span>
+  <span style="color:var(--text-dim); font-size:0.75rem;">cloud security · bug bounty · AI research</span>
+</footer>
+
+<script>
+  // Nav typewriter
+  (function() {
+    const el   = document.getElementById('nav-typewriter');
+    const text = 'Johnny Meintel';
+    let i = 0, deleting = false;
+    function tick() {
+      if (!deleting) {
+        el.textContent = text.slice(0, ++i);
+        if (i === text.length) { deleting = true; setTimeout(tick, 2200); return; }
+        setTimeout(tick, 90);
+      } else {
+        el.textContent = text.slice(0, --i);
+        if (i === 0) { deleting = false; setTimeout(tick, 400); return; }
+        setTimeout(tick, 45);
+      }
+    }
+    tick();
+  })();
+
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const p = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    document.getElementById('progress-bar').style.width = p + '%';
+  });
+
+  // Scroll reveal
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Hamburger menu
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  hamburger.addEventListener('click', () => {
+    const open = mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('open', open);
+  });
+
+  function closeMobile() {
+    mobileMenu.classList.remove('open');
+    hamburger.classList.remove('open');
+  }
+
+  // Close mobile menu on outside click
+  document.addEventListener('click', (e) => {
+    if (!hamburger.contains(e.target) && !mobileMenu.contains(e.target)) {
+      closeMobile();
+    }
+  });
+
+  // About section slideshow — add/remove filenames here to add/remove slides
+  (function() {
+    const images = [
+      '1_4ecgmYfJzfZyGc5oH6t9og.webp',
+      '1_O2D1xRzRgILtn3zhWs-mhw.webp',
+      '1_UCxF-1FuqJVvqaU5n491HQ.webp',
+      '1_XXIJOWUVY_lLSf_aj45N4A.webp',
+      '1_bRpuWBwO_PBltIHMxlk8cw.webp',
+      '13-First-Dashboard.png',
+      'Screenshot 2025-12-24 114432.png',
+      'Screenshot 2026-01-10 071015.png',
+      'Screenshot 2026-04-19 113718.png',
+      'Writeup2-4.png',
+      'image.png',
+    ];
+
+    const container = document.getElementById('about-slideshow');
+
+    // Build slides
+    images.forEach((file, i) => {
+      const div = document.createElement('div');
+      div.className = 'slideshow-slide' + (i === 0 ? ' active' : '');
+      div.innerHTML = `<img src="slideshow/${file}" alt="Screenshot ${i + 1}" />`;
+      container.appendChild(div);
+    });
+
+    // Build dots
+    const dotBar = document.createElement('div');
+    dotBar.className = 'slideshow-dots';
+    images.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'slideshow-dot' + (i === 0 ? ' active' : '');
+      dotBar.appendChild(d);
+    });
+    container.appendChild(dotBar);
+
+    // Advance
+    const slides = container.querySelectorAll('.slideshow-slide');
+    const dots   = container.querySelectorAll('.slideshow-dot');
+    let current  = 0;
+    setInterval(() => {
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = (current + 1) % slides.length;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+    }, 3500);
+  })();
+</script>
+
+</body>
+</html>

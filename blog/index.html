@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Writing - Johnny Meintel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary:   #ffffff;
+      --bg-secondary: #f1f3f5;
+      --bg-card:      #f7f8fa;
+      --accent-blue:  #1d3461;
+      --accent-green: #1a5c38;
+      --accent-red:   #9e1a1a;
+      --text-primary: #0c1825;
+      --text-dim:     #5c6b7a;
+      --text-mid:     #2d3f50;
+      --border:       rgba(12,24,37,0.12);
+      --border-soft:  rgba(12,24,37,0.07);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'IBM Plex Sans', sans-serif;
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 6vw, 5rem);
+      height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .nav-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; align-items: center; }
+    .nav-links a {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent-blue); }
+    .nav-links a.active { color: var(--accent-blue); font-weight: 500; }
+
+    @media (max-width: 640px) { .nav-links { display: none; } }
+
+    /* PAGE */
+    .page-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: clamp(5rem, 9vw, 7rem) clamp(1.5rem, 6vw, 3rem) 6rem;
+    }
+
+    .eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent-blue);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.7rem;
+      display: block;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      margin-bottom: 0.4rem;
+    }
+
+    .page-desc {
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-top: 0.6rem;
+    }
+
+    .divider {
+      width: 40px; height: 2px;
+      background: var(--accent-blue);
+      margin: 1.2rem 0 3rem;
+      opacity: 0.7;
+    }
+
+    /* TAG FILTER */
+    .tag-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .filter-btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.06em;
+    }
+    .filter-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+    .filter-btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    /* POST LIST */
+    .post-list { list-style: none; }
+
+    .post-item {
+      border-top: 1px solid var(--border-soft);
+      padding: 2rem 0;
+    }
+    .post-item:last-child { border-bottom: 1px solid var(--border-soft); }
+
+    .post-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .post-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+
+    .post-reading-time {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: rgba(92,107,122,0.6);
+    }
+
+    .post-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+
+    .post-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      padding: 2px 7px;
+      border-radius: 2px;
+      background: var(--bg-secondary);
+      color: var(--text-dim);
+      border: 1px solid var(--border-soft);
+    }
+
+    .post-tag.queued-badge {
+      background: rgba(122,92,0,0.08);
+      color: #7a5c00;
+      border-color: rgba(122,92,0,0.2);
+    }
+
+    .post-item[data-status="queued"] .post-title {
+      color: var(--text-dim);
+    }
+    .post-item[data-status="queued"] .post-excerpt {
+      opacity: 0.7;
+    }
+
+    .post-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      display: block;
+      margin-bottom: 0.5rem;
+      transition: color 0.15s;
+    }
+    .post-title:hover { color: var(--accent-blue); }
+
+    .post-excerpt {
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+      max-width: 640px;
+      margin-bottom: 0.8rem;
+    }
+
+    .post-read-link {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent-blue);
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .post-read-link:hover { opacity: 0.7; }
+
+    /* EMPTY STATE */
+    .empty-state {
+      padding: 4rem 0;
+      border-top: 1px solid var(--border-soft);
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .empty-state p {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      color: rgba(92,107,122,0.5);
+      line-height: 1.8;
+    }
+
+    .empty-state .template-note {
+      margin-top: 1.2rem;
+      padding: 1rem 1.2rem;
+      border: 1px dashed rgba(12,24,37,0.15);
+      border-radius: 2px;
+      background: var(--bg-secondary);
+    }
+
+    .empty-state .template-note p {
+      color: var(--text-dim);
+      opacity: 0.8;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem clamp(1.5rem, 6vw, 5rem);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav-name">
+    <svg viewBox="0 0 44 28" width="44" height="28" aria-hidden="true" style="display:block;flex-shrink:0">
+      <rect x="0.75" y="0.75" width="42.5" height="26.5" fill="none" stroke="#1d3461" stroke-width="1.5"/>
+      <rect x="0.75" y="22.25" width="13" height="4.5" fill="#1d3461"/>
+      <text x="22" y="14" font-family="IBM Plex Mono,Courier New,monospace" font-size="12" font-weight="700" fill="#1d3461" text-anchor="middle" dominant-baseline="middle">JM</text>
+    </svg>
+    Johnny Meintel
+  </a>
+  <ul class="nav-links">
+    <li><a href="../index.html#about">About</a></li>
+    <li><a href="../index.html#skills">Skills</a></li>
+    <li><a href="../index.html#labs">Research</a></li>
+    <li><a href="index.html" class="active">Writing</a></li>
+    <li><a href="../index.html#contact">Contact</a></li>
+    <li><a href="../benchmark.html" style="color:var(--accent-green)">Readiness ↗</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrap">
+  <span class="eyebrow">Writing</span>
+  <h1>Field Notes</h1>
+  <p class="page-desc">
+    Technical writing across homelab research, detection engineering, and offensive security. Published articles link to Medium; portfolio-original posts live here directly.
+  </p>
+  <div class="divider"></div>
+
+  <!-- TAG FILTER -->
+  <div class="tag-filter" id="tag-filter">
+    <button class="filter-btn active" data-tag="all">All</button>
+    <button class="filter-btn" data-tag="detection">Detection</button>
+    <button class="filter-btn" data-tag="siem">SIEM</button>
+    <button class="filter-btn" data-tag="active-directory">Active Directory</button>
+    <button class="filter-btn" data-tag="offensive">Offensive</button>
+    <button class="filter-btn" data-tag="homelab">Homelab</button>
+    <button class="filter-btn" data-tag="grc">GRC</button>
+    <button class="filter-btn" data-tag="ai-red-team">AI Red Team</button>
+    <button class="filter-btn" data-tag="bug-bounty">Bug Bounty</button>
+  </div>
+
+  <!-- POST LIST -->
+  <!--
+  ═══════════════════════════════════════════════════════════════
+  TEMPLATE - copy this <li> block for each live post.
+  File goes in blog/posts/your-post-slug.html
+  Remove data-status="queued" and the queued-badge when publishing.
+  ═══════════════════════════════════════════════════════════════
+  <li class="post-item" data-tags="writeup">
+    <div class="post-meta">
+      <span class="post-date">2026-00-00</span>
+      <span class="post-reading-time">0 min read</span>
+      <div class="post-tags">
+        <span class="post-tag">writeup</span>
+      </div>
+    </div>
+    <a href="posts/your-post-slug.html" class="post-title">Your Title</a>
+    <p class="post-excerpt">Your excerpt.</p>
+    <a href="posts/your-post-slug.html" class="post-read-link">Read →</a>
+  </li>
+  -->
+  <ul class="post-list" id="post-list">
+
+    <!-- ── LIVE - Medium articles ── -->
+
+    <li class="post-item" data-tags="bug-bounty offensive">
+      <div class="post-meta">
+        <span class="post-date">2026-04-15</span>
+        <div class="post-tags">
+          <span class="post-tag">bug-bounty</span>
+          <span class="post-tag">offensive</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/bug-bounty-101-1-building-a-basic-recon-logger-in-python-7aa6f3ce2d2b" target="_blank" class="post-title">Bug Bounty 101.1 - Building a Basic Recon Logger in Python</a>
+      <p class="post-excerpt">Python HTTP header recon tool for active bug bounty workflows - checks for missing security headers, outdated server fingerprints, and wildcard CORS misconfigurations.</p>
+      <a href="https://medium.com/@johnnymeintel/bug-bounty-101-1-building-a-basic-recon-logger-in-python-7aa6f3ce2d2b" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="offensive homelab active-directory">
+      <div class="post-meta">
+        <span class="post-date">2026-01-10</span>
+        <div class="post-tags">
+          <span class="post-tag">offensive</span>
+          <span class="post-tag">homelab</span>
+          <span class="post-tag">active-directory</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/attacking-and-defending-a-windows-network-share-ff61b8d4cb7b" target="_blank" class="post-title">Attacking and Defending a Windows Network Share</a>
+      <p class="post-excerpt">Exploited an overpermissioned SMB share via smbclient with compromised service account credentials - automated exfiltration every 5 minutes, detected via Event 5145 in Splunk, followed by hardening.</p>
+      <a href="https://medium.com/@johnnymeintel/attacking-and-defending-a-windows-network-share-ff61b8d4cb7b" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="offensive homelab active-directory">
+      <div class="post-meta">
+        <span class="post-date">2026-01-09</span>
+        <div class="post-tags">
+          <span class="post-tag">offensive</span>
+          <span class="post-tag">homelab</span>
+          <span class="post-tag">active-directory</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/creating-a-vulnerable-windows-network-share-fd43ec5bf8f4" target="_blank" class="post-title">Creating a Vulnerable Windows Network Share</a>
+      <p class="post-excerpt">Building the target environment - four shares on DC01 with intentional misconfigurations: overpermissioned Public share, weak service account credentials, CrackMapExec enumeration demonstrated.</p>
+      <a href="https://medium.com/@johnnymeintel/creating-a-vulnerable-windows-network-share-fd43ec5bf8f4" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="offensive homelab">
+      <div class="post-meta">
+        <span class="post-date">2025-12-25</span>
+        <div class="post-tags">
+          <span class="post-tag">offensive</span>
+          <span class="post-tag">homelab</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/installing-my-own-email-server-using-hmailserver-to-practice-phishing-and-email-security-ba6c6f178d33" target="_blank" class="post-title">Installing My Own Email Server Using hMailServer to Practice Phishing and Email Security</a>
+      <p class="post-excerpt">hMailServer on Windows Server 2022 with MX/A DNS records, Thunderbird IMAP/SMTP client, and a credential-harvesting phishing chain using swaks from Kali.</p>
+      <a href="https://medium.com/@johnnymeintel/installing-my-own-email-server-using-hmailserver-to-practice-phishing-and-email-security-ba6c6f178d33" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="offensive homelab">
+      <div class="post-meta">
+        <span class="post-date">2025-12-24</span>
+        <div class="post-tags">
+          <span class="post-tag">offensive</span>
+          <span class="post-tag">homelab</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/building-a-fake-company-database-and-employee-login-portal-to-practice-data-exfiltration-59c0421218f9" target="_blank" class="post-title">Building a Fake Company Database and Employee Login Portal to Practice Data Exfiltration</a>
+      <p class="post-excerpt">IIS + PHP + MySQL on Windows Server 2022 with 100 fake employees, 200 customer records, 300 invoices - SQL injection in search, credentials exposed in config files, built as a data exfil target.</p>
+      <a href="https://medium.com/@johnnymeintel/building-a-fake-company-database-and-employee-login-portal-to-practice-data-exfiltration-59c0421218f9" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="detection siem">
+      <div class="post-meta">
+        <span class="post-date">2025-12-18</span>
+        <div class="post-tags">
+          <span class="post-tag">detection</span>
+          <span class="post-tag">siem</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/splunk-homelab-noise-reduction-part-2-db1a775a675f" target="_blank" class="post-title">Splunk Homelab Noise Reduction - Part 2</a>
+      <p class="post-excerpt">1,120 process creation events per hour - tuning Sysmon EventID 1 noise via SPL eval categorization framework with mvindex path extraction to separate infrastructure from investigation targets.</p>
+      <a href="https://medium.com/@johnnymeintel/splunk-homelab-noise-reduction-part-2-db1a775a675f" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="detection siem active-directory">
+      <div class="post-meta">
+        <span class="post-date">2025-12-18</span>
+        <div class="post-tags">
+          <span class="post-tag">detection</span>
+          <span class="post-tag">active-directory</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/sysmon-is-coming-to-windows-lets-celebrate-by-talking-about-event-id-chaining-as-indicators-of-ac0076cac754" target="_blank" class="post-title">Sysmon Is Coming to Windows - Event ID Chaining as Indicators of Compromise</a>
+      <p class="post-excerpt">Detection patterns for 9 attack classes - credential dumping, Kerberoasting, Pass-the-Hash, PowerShell C2, DCSync, SMB relay - built from Sysmon + Windows Event ID chains with parent-process and access-mask analysis.</p>
+      <a href="https://medium.com/@johnnymeintel/sysmon-is-coming-to-windows-lets-celebrate-by-talking-about-event-id-chaining-as-indicators-of-ac0076cac754" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="detection siem">
+      <div class="post-meta">
+        <span class="post-date">2025-12-16</span>
+        <div class="post-tags">
+          <span class="post-tag">detection</span>
+          <span class="post-tag">siem</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/splunk-homelab-noise-reduction-part-1-6a092164bbc0" target="_blank" class="post-title">Splunk Homelab Noise Reduction - Part 1</a>
+      <p class="post-excerpt">NCSI DNS probes (EventCode 1014) generating hundreds of false positives - filtering methodology using SPL NOT clauses targeting msftncsi, _msdcs, and _ldap query patterns.</p>
+      <a href="https://medium.com/@johnnymeintel/splunk-homelab-noise-reduction-part-1-6a092164bbc0" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="detection siem homelab">
+      <div class="post-meta">
+        <span class="post-date">2025-12-13</span>
+        <div class="post-tags">
+          <span class="post-tag">detection</span>
+          <span class="post-tag">siem</span>
+          <span class="post-tag">homelab</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/splunk-basics-homelab-soc-in-a-box-b7f0d2746fdc" target="_blank" class="post-title">Splunk Basics: Homelab "SOC In A Box"</a>
+      <p class="post-excerpt">Splunk Universal Forwarders on 3 Windows hosts feeding an Ubuntu indexer - 5 core SPL queries for brute force detection, privileged activity, process execution chains, and attack chain visualization.</p>
+      <a href="https://medium.com/@johnnymeintel/splunk-basics-homelab-soc-in-a-box-b7f0d2746fdc" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="offensive homelab">
+      <div class="post-meta">
+        <span class="post-date">2025-12-08</span>
+        <div class="post-tags">
+          <span class="post-tag">offensive</span>
+          <span class="post-tag">homelab</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/iis-misconfigurations-mysql-exposure-and-the-path-to-domain-admin-14db9fbe9df8" target="_blank" class="post-title">IIS Misconfigurations, MySQL Exposure, and the Path to Domain Admin</a>
+      <p class="post-excerpt">Directory browsing enabled + app pool as Domain Admin + MySQL bound to 0.0.0.0 - Hydra brute force, web shell via directory traversal, RCE through w3wp.exe for immediate domain-wide access.</p>
+      <a href="https://medium.com/@johnnymeintel/iis-misconfigurations-mysql-exposure-and-the-path-to-domain-admin-14db9fbe9df8" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="active-directory offensive homelab">
+      <div class="post-meta">
+        <span class="post-date">2025-12-04</span>
+        <div class="post-tags">
+          <span class="post-tag">active-directory</span>
+          <span class="post-tag">offensive</span>
+          <span class="post-tag">homelab</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/understanding-ad-attack-vectors-through-intentional-misconfiguration-f17525058cca" target="_blank" class="post-title">Understanding AD Attack Vectors Through Intentional Misconfiguration</a>
+      <p class="post-excerpt">Deliberately configured SMB signing disabled, weak Fine-Grained Password Policy (7 chars, no lockout), and three Kerberoastable service accounts (DoesNotRequirePreAuth=true) - each enabling a documented MITRE technique.</p>
+      <a href="https://medium.com/@johnnymeintel/understanding-ad-attack-vectors-through-intentional-misconfiguration-f17525058cca" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="homelab">
+      <div class="post-meta">
+        <span class="post-date">2025-12-04</span>
+        <div class="post-tags">
+          <span class="post-tag">homelab</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/when-business-beats-best-practice-simulating-enterprise-technical-debt-05feb12d0e2b" target="_blank" class="post-title">When Business Beats Best Practice: Simulating Enterprise Technical Debt</a>
+      <p class="post-excerpt">Three real-world technical debt scenarios - Domain Admin autologon, disabled security controls for legacy app compatibility, and unsecured RDP - modeled from actual enterprise patterns with MITRE technique mapping.</p>
+      <a href="https://medium.com/@johnnymeintel/when-business-beats-best-practice-simulating-enterprise-technical-debt-05feb12d0e2b" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="homelab offensive">
+      <div class="post-meta">
+        <span class="post-date">2025-11-28</span>
+        <div class="post-tags">
+          <span class="post-tag">homelab</span>
+          <span class="post-tag">offensive</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/windows-server-2022-web-server-db-assessment-hostname-app01-139b9980c17a" target="_blank" class="post-title">Windows Server 2022 Web Server + DB Assessment (Hostname: APP01)</a>
+      <p class="post-excerpt">PowerShell baseline assessment of IIS/MySQL server - unencrypted HTTP, MySQL on all interfaces, SMB/WinRM exposed, three overprivileged service accounts - findings classified Critical/High/Medium with remediation steps.</p>
+      <a href="https://medium.com/@johnnymeintel/windows-server-2022-web-server-db-assessment-hostname-app01-139b9980c17a" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="active-directory homelab">
+      <div class="post-meta">
+        <span class="post-date">2025-11-28</span>
+        <div class="post-tags">
+          <span class="post-tag">active-directory</span>
+          <span class="post-tag">homelab</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/windows-server-2022-domain-controller-assessment-hostname-dc01-5a4d537f0b05" target="_blank" class="post-title">Windows Server 2022 Domain Controller Assessment (Hostname: DC01)</a>
+      <p class="post-excerpt">Baseline PowerShell assessment of DC01 - excessive Domain Admin membership, zero account lockout threshold, NTP misconfiguration affecting Kerberos, public DNS forwarder, legacy NetBIOS exposure. Published as DC01-Baseline-Assessment-Quick.ps1 on GitHub.</p>
+      <a href="https://medium.com/@johnnymeintel/windows-server-2022-domain-controller-assessment-hostname-dc01-5a4d537f0b05" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="homelab active-directory">
+      <div class="post-meta">
+        <span class="post-date">2025-11-27</span>
+        <div class="post-tags">
+          <span class="post-tag">homelab</span>
+          <span class="post-tag">active-directory</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/windows-11-security-assessment-hostname-win11-mgr1-e8326d82750e" target="_blank" class="post-title">Windows 11 Security Assessment (Hostname: WIN11-MGR1)</a>
+      <p class="post-excerpt">Executive workstation assessment - AutoAdminLogon with DA credentials in plaintext registry, UAC disabled, RDP open with no NLA, Kerberoastable service accounts - critical chain to domain compromise documented.</p>
+      <a href="https://medium.com/@johnnymeintel/windows-11-security-assessment-hostname-win11-mgr1-e8326d82750e" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="homelab">
+      <div class="post-meta">
+        <span class="post-date">2025-11-26</span>
+        <div class="post-tags">
+          <span class="post-tag">homelab</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/cybersecurity-homelab-setup-using-a-single-desktop-d55399b8b1dd" target="_blank" class="post-title">Cybersecurity Homelab Setup (Using a Single Desktop)</a>
+      <p class="post-excerpt">7-VM enterprise simulation on a Dell OptiPlex 5070 (32GB RAM, 1TB) - DC01, APP01, MGR1, DEV1, USER1, SIEM01, and Kali - with intentional misconfigurations across each layer for a full attack-defend environment.</p>
+      <a href="https://medium.com/@johnnymeintel/cybersecurity-homelab-setup-using-a-single-desktop-d55399b8b1dd" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="active-directory offensive">
+      <div class="post-meta">
+        <span class="post-date">2025-11-20</span>
+        <div class="post-tags">
+          <span class="post-tag">active-directory</span>
+          <span class="post-tag">offensive</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/active-directory-attack-chain-from-network-access-to-domain-compromise-0df6ef3f9a37" target="_blank" class="post-title">Active Directory Attack Chain: From Network Access to Domain Compromise</a>
+      <p class="post-excerpt">10-step attack chain: Nmap → CrackMapExec SMB enumeration → RID cycling → Responder NTLM capture → Hashcat → Kerberoasting via impacket-GetUserSPNs → DCSync. Full domain compromise documented from first ping.</p>
+      <a href="https://medium.com/@johnnymeintel/active-directory-attack-chain-from-network-access-to-domain-compromise-0df6ef3f9a37" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="homelab active-directory detection">
+      <div class="post-meta">
+        <span class="post-date">2025-11-16</span>
+        <div class="post-tags">
+          <span class="post-tag">homelab</span>
+          <span class="post-tag">active-directory</span>
+          <span class="post-tag">detection</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/windows-attack-surface-reduction-ee0745e0ead8" target="_blank" class="post-title">Windows Attack Surface Reduction</a>
+      <p class="post-excerpt">10 ASR rules deployed on WIN11-MGR1, RDP and cached logon reduction via registry, 14-char password policy, PowerShell ScriptBlock logging enabled - Wazuh rule for RDP re-enablement detection mapped to MITRE T1021.001.</p>
+      <a href="https://medium.com/@johnnymeintel/windows-attack-surface-reduction-ee0745e0ead8" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="active-directory grc detection">
+      <div class="post-meta">
+        <span class="post-date">2025-10-30</span>
+        <div class="post-tags">
+          <span class="post-tag">active-directory</span>
+          <span class="post-tag">grc</span>
+          <span class="post-tag">detection</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/active-directory-least-privilege-ldaps-enforcement-8359832c91c3" target="_blank" class="post-title">Active Directory Least Privilege &amp; LDAPS Enforcement</a>
+      <p class="post-excerpt">SOC 2 Type II gap remediation - CC6.1 account tiering with "-std" model, CC7.1 Wazuh rule 100010 alerting on privileged logins, CC8.1 LDAPS via internal CA with PowerShell verified on port 636.</p>
+      <a href="https://medium.com/@johnnymeintel/active-directory-least-privilege-ldaps-enforcement-8359832c91c3" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="detection siem">
+      <div class="post-meta">
+        <span class="post-date">2025-10-24</span>
+        <div class="post-tags">
+          <span class="post-tag">detection</span>
+          <span class="post-tag">siem</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/wazuh-siem-baseline-assessment-in-5-scripts-fc20277de879" target="_blank" class="post-title">Wazuh SIEM Baseline Assessment in 5 Scripts</a>
+      <p class="post-excerpt">Five bash scripts assessing a fresh Wazuh 4.14.0 deployment: system config, Wazuh manager, indexer (OpenSearch 7.10.2), Filebeat, and log collection - ~400 lines across 34 output files.</p>
+      <a href="https://medium.com/@johnnymeintel/wazuh-siem-baseline-assessment-in-5-scripts-fc20277de879" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="detection siem active-directory">
+      <div class="post-meta">
+        <span class="post-date">2025-10-22</span>
+        <div class="post-tags">
+          <span class="post-tag">detection</span>
+          <span class="post-tag">siem</span>
+          <span class="post-tag">active-directory</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/sysmon-wazuh-the-defense-in-depth-dynamic-duo-a757b254521a" target="_blank" class="post-title">Sysmon + Wazuh: The Defense-In-Depth Dynamic Duo</a>
+      <p class="post-excerpt">Sysmon (SwiftOnSecurity config) integrated with Wazuh via ossec.conf eventchannel - custom rules for brute force (Rule 100001), password spray (Rule 100002, MITRE T1110.003), and LSASS access detection (Rules 100010/100011).</p>
+      <a href="https://medium.com/@johnnymeintel/sysmon-wazuh-the-defense-in-depth-dynamic-duo-a757b254521a" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <li class="post-item" data-tags="siem detection homelab">
+      <div class="post-meta">
+        <span class="post-date">2025-10-08</span>
+        <div class="post-tags">
+          <span class="post-tag">siem</span>
+          <span class="post-tag">detection</span>
+          <span class="post-tag">homelab</span>
+        </div>
+      </div>
+      <a href="https://medium.com/@johnnymeintel/i-built-my-own-siem-on-my-desktop-786389b41abd" target="_blank" class="post-title">I Built My Own SIEM On My Desktop</a>
+      <p class="post-excerpt">Wazuh on Ubuntu 24.04.3 with agents on DC01, APP01, and MGR1 - time synchronization via Chrony NTP, MITRE ATT&CK mapped alerts, Event ID 4625 detection with error code interpretation (0xc000006d, 0xc0000064).</p>
+      <a href="https://medium.com/@johnnymeintel/i-built-my-own-siem-on-my-desktop-786389b41abd" target="_blank" class="post-read-link">Read on Medium →</a>
+    </li>
+
+    <!-- ── QUEUED - in development ── -->
+
+    <li class="post-item" data-tags="offensive" data-status="queued">
+      <div class="post-meta">
+        <span class="post-date">-</span>
+        <div class="post-tags">
+          <span class="post-tag">offensive</span>
+          <span class="post-tag queued-badge">drafting</span>
+        </div>
+      </div>
+      <span class="post-title" style="cursor:default">CVE Lab Breakdown: Reproducing a Recent Auth or Web Vulnerability</span>
+      <p class="post-excerpt">A disclosed CVE reproduced in a local lab - exploitation walkthrough, HTTP evidence, detection logic, and remediation analysis.</p>
+    </li>
+
+    <li class="post-item" data-tags="ai-red-team" data-status="queued">
+      <div class="post-meta">
+        <span class="post-date">-</span>
+        <div class="post-tags">
+          <span class="post-tag">ai-red-team</span>
+          <span class="post-tag queued-badge">drafting</span>
+        </div>
+      </div>
+      <span class="post-title" style="cursor:default">LLM Red Teaming: From RLHF Annotator to Adversarial Tester</span>
+      <p class="post-excerpt">What annotating LLM training data reveals about model safety gaps, and how that maps directly to adversarial red team methodology - three prompt injection classes broken down.</p>
+    </li>
+
+    <li class="post-item" data-tags="grc active-directory" data-status="queued">
+      <div class="post-meta">
+        <span class="post-date">-</span>
+        <div class="post-tags">
+          <span class="post-tag">grc</span>
+          <span class="post-tag queued-badge">drafting</span>
+        </div>
+      </div>
+      <span class="post-title" style="cursor:default">Running a SOC 2 Gap Analysis from Scratch</span>
+      <p class="post-excerpt">A simulated SOC 2 Type II readiness assessment - controls mapped to evidence, gaps flagged, remediation plan written as a practitioner engagement report.</p>
+    </li>
+
+    <li class="post-item" data-tags="detection" data-status="queued">
+      <div class="post-meta">
+        <span class="post-date">-</span>
+        <div class="post-tags">
+          <span class="post-tag">detection</span>
+          <span class="post-tag queued-badge">drafting</span>
+        </div>
+      </div>
+      <span class="post-title" style="cursor:default">Detection Engineering for Web App Attacks</span>
+      <p class="post-excerpt">Multi-part series: for each OWASP Top 10 class exploited in a lab, what the attack looks like in logs and the Sigma/KQL rule written to catch it.</p>
+    </li>
+
+  </ul>
+</div>
+
+<footer>
+  <span>Johnny Meintel - Security Research</span>
+  <span>web application security · bug bounty · Python tooling</span>
+</footer>
+
+<script>
+  // Tag filter
+  document.getElementById('tag-filter').addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const tag = btn.dataset.tag;
+    document.querySelectorAll('.post-item[data-tags]').forEach(item => {
+      if (tag === 'all' || item.dataset.tags.split(' ').includes(tag)) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

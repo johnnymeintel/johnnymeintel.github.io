@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bug Bounty Readiness Index - Johnny Meintel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0a;
+      color: #c8c8c8;
+      font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* NAV STRIP */
+    .top-bar {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #1e1e1e;
+      padding: 0 40px;
+      height: 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .top-bar-left {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #444;
+    }
+    .top-bar-left a {
+      color: #555;
+      transition: color 0.15s;
+    }
+    .top-bar-left a:hover { color: #00ffcc; }
+    .top-bar-right {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #2a2a2a;
+    }
+
+    /* HEADER */
+    .header {
+      border-bottom: 2px solid #1e1e1e;
+      padding: 80px 40px 28px;
+      background: #0d0d0d;
+    }
+    .header-classified {
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: #444;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #e8e8e8;
+      margin: 0 0 6px;
+      letter-spacing: 1px;
+    }
+    .header-sub {
+      font-size: 12px;
+      color: #555;
+      letter-spacing: 2px;
+    }
+    .header-quote {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #3a3a3a;
+      font-style: italic;
+    }
+
+    /* PROGRESS PANEL */
+    .progress-panel {
+      padding: 24px 40px;
+      border-bottom: 1px solid #1a1a1a;
+      background: #0b0b0b;
+    }
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .progress-left { display: flex; align-items: baseline; gap: 0; }
+    .progress-pct {
+      font-size: 28px;
+      font-weight: 700;
+      transition: color 0.3s;
+    }
+    .progress-count {
+      font-size: 11px;
+      color: #444;
+      margin-left: 12px;
+      letter-spacing: 3px;
+    }
+    .progress-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .readiness-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      font-weight: 700;
+      transition: color 0.3s;
+    }
+    .reset-btn {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: #333;
+      border: 1px solid #222;
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      background: transparent;
+      font-family: inherit;
+    }
+    .reset-btn:hover { color: #ff4444; border-color: #ff4444; }
+
+    .progress-bar-track {
+      background: #1a1a1a;
+      height: 4px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s ease, background 0.3s, box-shadow 0.3s;
+      width: 0%;
+    }
+    .progress-tagline {
+      margin-top: 10px;
+      font-size: 10px;
+      color: #333;
+      letter-spacing: 2px;
+    }
+
+    /* SECTIONS */
+    .sections-wrap { padding: 16px 40px 60px; }
+
+    .section-block { margin-bottom: 8px; }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: #0e0e0e;
+      border: 1px solid #1a1a1a;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .section-header.open {
+      background: #111;
+      border-color: #2a2a2a;
+    }
+    .section-header-left { flex: 1; }
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #ddd;
+      letter-spacing: 2px;
+    }
+    .section-subtitle {
+      font-size: 10px;
+      color: #444;
+      margin-top: 3px;
+      font-style: italic;
+    }
+    .section-mini-bar-track {
+      margin-top: 8px;
+      background: #1a1a1a;
+      height: 2px;
+      width: 200px;
+      border-radius: 1px;
+      overflow: hidden;
+      display: none;
+    }
+    .section-mini-bar-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+    .section-header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .section-count {
+      font-size: 13px;
+      font-weight: 700;
+      color: #555;
+      transition: color 0.2s;
+    }
+    .section-arrow {
+      font-size: 12px;
+      color: #333;
+      transition: transform 0.2s;
+      display: inline-block;
+    }
+
+    .section-items {
+      border: 1px solid #1a1a1a;
+      border-top: none;
+      background: #080808;
+      display: none;
+    }
+    .section-items.open { display: block; }
+
+    .item-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #111;
+      cursor: pointer;
+      background: transparent;
+      transition: background 0.15s;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-row.checked { background: #0c110c; }
+
+    .item-checkbox {
+      width: 14px;
+      height: 14px;
+      border: 1px solid #2a2a2a;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+      transition: all 0.15s;
+    }
+    .item-checkbox.checked {
+      border-color: #00ffcc;
+      background: rgba(0,255,204,0.13);
+    }
+    .item-checkmark {
+      font-size: 9px;
+      color: #00ffcc;
+      font-weight: 700;
+      display: none;
+    }
+    .item-checkbox.checked .item-checkmark { display: block; }
+
+    .item-text {
+      font-size: 12px;
+      line-height: 1.5;
+      color: #999;
+      transition: all 0.15s;
+    }
+    .item-row.checked .item-text {
+      color: #445544;
+      text-decoration: line-through;
+    }
+
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid #1a1a1a;
+      padding: 20px 40px;
+      background: #0b0b0b;
+      font-size: 10px;
+      color: #2a2a2a;
+      letter-spacing: 2px;
+    }
+
+    @media (max-width: 600px) {
+      .top-bar, .header, .progress-panel, .sections-wrap, .footer {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+      .header h1 { font-size: 16px; }
+      .section-mini-bar-track { width: 120px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="top-bar">
+  <div class="top-bar-left">
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;">
+      <svg viewBox="0 0 44 28" width="36" height="23" aria-hidden="true" style="display:block;flex-shrink:0">
+        <rect x="0.75" y="0.75" width="42.5" height="26.5" fill="none" stroke="#c8c8c8" stroke-width="1.5"/>
+        <rect x="0.75" y="22.25" width="13" height="4.5" fill="#c8c8c8"/>
+        <text x="22" y="14" font-family="IBM Plex Mono,Courier New,monospace" font-size="12" font-weight="700" fill="#c8c8c8" text-anchor="middle" dominant-baseline="middle">JM</text>
+      </svg>
+      ← JOHNNY MEINTEL
+    </a>
+    <span style="margin: 0 10px; color: #222;">/</span>
+    <span>READINESS INDEX</span>
+    <span style="margin: 0 10px; color: #222;">·</span>
+    <a href="blog/index.html">Writing</a>
+  </div>
+  <div class="top-bar-right">REV 2026.04</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>BUG BOUNTY READINESS INDEX</h1>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-panel">
+  <div class="progress-top">
+    <div class="progress-left">
+      <span class="progress-pct" id="pct-display">0%</span>
+      <span class="progress-count" id="count-display">0/0 CONFIRMED</span>
+    </div>
+    <div class="progress-right">
+      <span class="readiness-label" id="readiness-label">RECON PHASE</span>
+      <button class="reset-btn" onclick="resetAll()">RESET</button>
+    </div>
+  </div>
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="main-bar"></div>
+  </div>
+  <div class="progress-tagline">AI FINDS THE PATTERN MATCHES. YOU FIND THE LOGIC GAPS. KNOW THE DIFFERENCE.</div>
+</div>
+
+<!-- SECTIONS (rendered by JS) -->
+<div class="sections-wrap" id="sections-wrap"></div>
+
+<!-- FOOTER -->
+<div class="footer">
+  PROGRESS PERSISTS IN BROWSER // RESET CLEARS ALL // THIS IS A FLOOR NOT A CEILING
+</div>
+
+<script>
+const STORAGE_KEY = 'bounty-benchmark-v2';
+
+const sections = [
+  {
+    id: "recon",
+    label: "01 // RECON & METHODOLOGY",
+    subtitle: "You skip this, you deserve every informational you get.",
+    items: [
+      { id: "r1",  text: "Passive recon without touching the target - Shodan, Censys, crt.sh, waybackurls, gau [→ mk6: same stack powers the IOC enrichment pipeline]" },
+      { id: "r2",  text: "Subdomain enumeration (amass, subfinder, dnsx) and live host filtering" },
+      { id: "r3",  text: "JS file extraction and secret hunting - linkfinder, secretfinder, trufflehog on endpoints" },
+      { id: "r4",  text: "Tech stack fingerprinting - headers, cookies, error messages, timing differences" },
+      { id: "r5",  text: "Identifying the authentication perimeter - what's behind login, what isn't, where the boundary is fuzzy" },
+      { id: "r6",  text: "Reading the program scope like a contract, not a suggestion - out-of-scope submissions are amateur hour" },
+      { id: "r7",  text: "Mapping the application's intended data flow before touching any input" },
+      { id: "r8",  text: "Identifying API endpoints from JS, mobile apps, and traffic - they almost always have worse coverage than the frontend" },
+      { id: "r9",  text: "Parameter discovery - arjun, param-miner for hidden GET/POST params that aren't in the UI" },
+      { id: "r10", text: "CORS allow-list enumeration - OPTIONS preflight response reveals headers the browser never sends; unexplored headers are unexplored attack surface" },
+      { id: "r11", text: "Git-exposed repos and backup files - /.git/, .bak, .old, .swp, web.config, .DS_Store in web root" },
+      { id: "r12", text: "Mobile APK/IPA as a recon artifact - extract endpoints, API keys, feature flags, and staging URLs the web client never exposes" },
+      { id: "r13", text: "Feature flag and config endpoints - GET /account/config, /api/config, /settings/flags reveal security control state and UAT vs prod delta" },
+    ],
+  },
+  {
+    id: "auth",
+    label: "02 // AUTHENTICATION & SESSION",
+    subtitle: "Where most criticals live. Where most hunters don't spend enough time.",
+    items: [
+      { id: "a1",  text: "OTP/2FA bypass - response manipulation, code reuse across accounts, missing rate limiting" },
+      { id: "a2",  text: "Password reset flaws - host header injection in reset links, token predictability, token reuse" },
+      { id: "a3",  text: "JWT attacks - alg:none, weak secret brute force, kid injection, header injection" },
+      { id: "a4",  text: "OAuth misconfigurations - state param missing, redirect_uri validation bypass, token leakage in referrer" },
+      { id: "a5",  text: "Session fixation and session token entropy analysis" },
+      { id: "a6",  text: "Cookie flags - missing Secure, HttpOnly, SameSite - and understanding when they actually matter" },
+      { id: "a7",  text: "Account takeover chains - stacking a weak reset + predictable token + no rate limit into a critical" },
+      { id: "a8",  text: "SSO/SAML attacks - signature wrapping, XML injection, recipient validation bypass" },
+      { id: "a9",  text: "Forgot password timing oracles - different response times revealing valid vs invalid usernames" },
+      { id: "a10", text: "Account enumeration via differential response - different error message, status code, or timing for valid vs invalid usernames" },
+      { id: "a11", text: "Magic link / passwordless auth - token entropy, reuse across accounts, guessable format, expiry enforcement" },
+      { id: "a12", text: "Pre-auth cookie manipulation - modifying session or state cookies before authentication completes" },
+      { id: "a13", text: "MFA fatigue and push notification bombing - repeated prompts until user accepts" },
+    ],
+  },
+  {
+    id: "authz",
+    label: "03 // ACCESS CONTROL & AUTHORIZATION",
+    subtitle: "The most underrated category. Programs pay well because it's hard to automate.",
+    items: [
+      { id: "z1",  text: "IDOR - object reference manipulation across IDs, GUIDs, hashes, file paths" },
+      { id: "z2",  text: "Horizontal privilege escalation - accessing another user's resources at the same permission level" },
+      { id: "z3",  text: "Vertical privilege escalation - accessing admin/elevated functions as a regular user" },
+      { id: "z4",  text: "Mass assignment - sending undocumented parameters that modify role or privilege fields" },
+      { id: "z5",  text: "BOLA (Broken Object Level Auth) in APIs - the API IDOR equivalent, extremely common" },
+      { id: "z6",  text: "Function-level access control - knowing what endpoints exist and testing them as lower-privilege users" },
+      { id: "z7",  text: "Path traversal to access files outside the intended scope" },
+      { id: "z8",  text: "Multi-tenancy boundary testing - can tenant A access tenant B's data" },
+      { id: "z9",  text: "Header-based access control bypass - X-Original-URL, X-Rewrite-URL, X-Forwarded-For to spoof internal/admin origin" },
+      { id: "z10", text: "UUID/GUID IDOR - don't assume non-sequential = unexploitable; test leakage paths and partial enumeration" },
+      { id: "z11", text: "GraphQL field-level authorization - per-field auth enforcement often weaker than REST; test admin fields as regular user" },
+      { id: "z12", text: "KYC/verification state bypass - accessing post-verification features from a pre-verification account state" },
+    ],
+  },
+  {
+    id: "logic",
+    label: "04 // BUSINESS LOGIC",
+    subtitle: "This is where AI assistance breaks down. This is your territory.",
+    items: [
+      { id: "l1",  text: "Understand what the application is supposed to do - fully - before probing what it actually does" },
+      { id: "l2",  text: "Workflow bypass - skipping steps in multi-step processes (checkout, verification, onboarding)" },
+      { id: "l3",  text: "Price and quantity manipulation - negative values, zero-cost checkout, floating point abuse" },
+      { id: "l4",  text: "Race conditions - concurrent requests exploiting non-atomic operations (double spend, coupon reuse)" },
+      { id: "l5",  text: "Feature interaction flaws - two individually safe features that create a vulnerability when combined" },
+      { id: "l6",  text: "Trust boundary violations - client-supplied data influencing server-side trust decisions" },
+      { id: "l7",  text: "Coupon/referral/loyalty abuse - understanding the reward logic well enough to exploit it" },
+      { id: "l8",  text: "State machine attacks - forcing an application into an invalid state by manipulating transition order" },
+      { id: "l9",  text: "Inconsistency hunting - same action through different interfaces (web vs API vs mobile) producing different results" },
+      { id: "l10", text: "Proprietary identifier bypass - custom client IDs, device fingerprints, and tracking headers are not security controls until proven otherwise" },
+    ],
+  },
+  {
+    id: "injection",
+    label: "05 // INJECTION CLASSES",
+    subtitle: "Know the family. Not just SQL.",
+    items: [
+      { id: "i1",  text: "SQL injection - including blind, time-based, and second-order. Know sqlmap but know what it's doing. [→ mk2, mk3: SQLi log pattern + detection rule is part of the SIEM lab series]" },
+      { id: "i2",  text: "NoSQL injection - MongoDB operator injection ($where, $ne, $gt) - different syntax, same concept" },
+      { id: "i3",  text: "Command injection - OS command execution through unsanitized input to system calls" },
+      { id: "i4",  text: "LDAP injection - authentication bypass and data extraction in directory-integrated apps" },
+      { id: "i5",  text: "Template injection (SSTI) - identifying template engines and escalating from XSS to RCE" },
+      { id: "i6",  text: "XPath injection - XML data stores using the same pattern as SQLi" },
+      { id: "i7",  text: "HTTP header injection - CRLF injection, response splitting, cache poisoning via headers" },
+      { id: "i8",  text: "GraphQL injection - introspection abuse, batching attacks, field suggestion enumeration" },
+      { id: "i9",  text: "Prototype pollution - injecting properties into JavaScript object prototypes to affect server logic or client rendering" },
+      { id: "i10", text: "Server-side request forgery via injection - SSRF triggered by injecting URLs into processed fields (XML parsers, PDF generators, webhook targets)" },
+    ],
+  },
+  {
+    id: "web",
+    label: "06 // CORE WEB VULNS",
+    subtitle: "Table stakes. You need these automatic before anything else matters.",
+    items: [
+      { id: "w1",  text: "XSS - reflected, stored, DOM-based. Know the sink/source model, not just alert(1). [→ mk2, mk3: write the detection rule for what you just exploited]" },
+      { id: "w2",  text: "CSRF - understand SameSite cookie behavior, when it protects and when it doesn't" },
+      { id: "w3",  text: "SSRF - internal network access, cloud metadata endpoints (169.254.169.254), protocol smuggling" },
+      { id: "w4",  text: "XXE - XML external entity injection, out-of-band exfiltration, blind XXE via error messages" },
+      { id: "w5",  text: "Open redirect - standalone and as a stepping stone to OAuth token theft" },
+      { id: "w6",  text: "Clickjacking - frame embedding + UI redressing, when CSP/X-Frame-Options fails" },
+      { id: "w7",  text: "CORS misconfiguration - null origin, wildcard with credentials, subdomain trust" },
+      { id: "w8",  text: "Insecure deserialization - understanding the gadget chain concept even if you use ysoserial" },
+      { id: "w9",  text: "File upload vulnerabilities - extension bypass, content-type spoofing, path traversal in filename" },
+      { id: "w10", text: "HTTP parameter pollution - duplicate parameter submission and observing which one wins server-side vs client-side" },
+      { id: "w11", text: "Web cache deception - tricking cache into storing authenticated user responses at a predictable public URL" },
+    ],
+  },
+  {
+    id: "http",
+    label: "07 // HTTP MECHANICS & PROTOCOL",
+    subtitle: "The plumbing. Ugly, underrated, and where request smuggling lives.",
+    items: [
+      { id: "h1", text: "HTTP request smuggling - CL.TE and TE.CL desync attacks, bypassing front-end security controls and poisoning request queues" },
+      { id: "h2", text: "Host header injection - password reset link poisoning, routing bypass via X-Forwarded-Host, cache poisoning" },
+      { id: "h3", text: "Web cache poisoning - unkeyed header injection, cache key normalization quirks, DoS via cache" },
+      { id: "h4", text: "HTTP verb override - X-HTTP-Method-Override, _method param to bypass firewall verb restrictions" },
+      { id: "h5", text: "HTTP/2 specific attacks - H2.CL request smuggling, header injection via pseudo-headers, h2c cleartext upgrade" },
+      { id: "h6", text: "WebSocket hijacking - CSWSH (cross-site WebSocket hijacking) via missing CSRF on handshake, missing auth validation" },
+      { id: "h7", text: "WebSocket injection - passing SQLi, SSTI, or command injection payloads through WS message channels" },
+      { id: "h8", text: "CRLF injection / response splitting - injecting newlines into header values to set cookies or inject response content" },
+      { id: "h9", text: "Chunked encoding abuse - TE header manipulation for desync, intermediate proxy inconsistencies" },
+    ],
+  },
+  {
+    id: "api",
+    label: "08 // API SECURITY",
+    subtitle: "APIs have worse coverage than frontends. Always. Without exception.",
+    items: [
+      { id: "p1",  text: "REST API enumeration - verb tampering (GET vs POST vs PUT vs DELETE on same endpoint)" },
+      { id: "p2",  text: "Excessive data exposure - API returning fields the UI doesn't display" },
+      { id: "p3",  text: "Lack of resource/rate limiting - and understanding how to weaponize unbounded loops" },
+      { id: "p4",  text: "API versioning issues - v1 endpoints without v2 security fixes still live in production" },
+      { id: "p5",  text: "Mass assignment in APIs - undocumented writable fields in PUT/PATCH requests" },
+      { id: "p6",  text: "GraphQL - introspection enabled in prod, nested query DoS, authorization not enforced per-field" },
+      { id: "p7",  text: "Webhook security - SSRF via attacker-controlled webhook URLs, signature bypass" },
+      { id: "p8",  text: "API key exposure - in JS files, mobile binaries, git history, error messages" },
+      { id: "p9",  text: "Shadow/undocumented API endpoints - discovered via mobile APK decompile, browser DevTools, Wayback, OpenAPI spec gaps" },
+      { id: "p10", text: "API gateway security - rate limit bypass via distributed requests, X-Forwarded-For spoofing for IP-based limits" },
+    ],
+  },
+  {
+    id: "cloud",
+    label: "09 // CLOUD & INFRASTRUCTURE",
+    subtitle: "Misconfigured cloud is the new SQLi. Everyone has it, few hunters look.",
+    items: [
+      { id: "cl1", text: "S3 / GCS / Azure Blob enumeration - public buckets, predictable naming patterns (company-corp-backup, company-prod-assets) [→ mk8: AWS misconfig scanner covers this programmatically]" },
+      { id: "cl2", text: "Cloud metadata endpoints - 169.254.169.254 (AWS IMDSv1), http://metadata.google.internal, IMDSv2 enforcement bypass [→ mk8, mk9: IMDSv1 SSRF is one of the 10 misconfigs]" },
+      { id: "cl3", text: "Exposed .env, backup, and config files - .env, .env.production, config.yml, database.yml in web root" },
+      { id: "cl4", text: "GitHub/GitLab secret scanning - leaked API keys, tokens, private keys in commit history and forks" },
+      { id: "cl5", text: "Serverless endpoint exposure - Lambda function URL guessing, API Gateway stage enumeration (/dev, /staging, /prod)" },
+      { id: "cl6", text: "IAM over-permission context - understand what leaked cloud credentials enable; SSRF-to-metadata is only valuable if you can do something with the credentials [→ mk8: IAM over-permission is a primary scanner check]" },
+      { id: "cl7", text: "Container/Kubernetes exposure - etcd on 2379, dashboard on 8001, kubelet API on 10250, Docker daemon on 2375" },
+      { id: "cl8", text: "DNS misconfiguration - zone transfer (AXFR), dangling CNAMEs pointing to unclaimed cloud resources (subdomain takeover)" },
+      { id: "cl9", text: "Open directory listings - web servers with autoindex enabled exposing backup files, logs, and internal assets" },
+    ],
+  },
+  {
+    id: "mobile",
+    label: "10 // MOBILE ATTACK SURFACE",
+    subtitle: "APKs are open books. Most hunters never crack one.",
+    items: [
+      { id: "m1", text: "APK decompilation with jadx/apktool - extract hardcoded API keys, endpoints, staging URLs, debug flags" },
+      { id: "m2", text: "Certificate pinning bypass - Frida, objection, MITMProxy with SSL kill switch, or repackage with pinning removed" },
+      { id: "m3", text: "Android insecure storage - SharedPreferences, SQLite databases, external storage, unprotected file providers" },
+      { id: "m4", text: "Android deep link hijacking - exported activities with intent filters, cross-app data theft, OAuth redirect interception" },
+      { id: "m5", text: "iOS binary analysis - strings extraction, class-dump for exposed selectors, Keychain misuse, NSUserDefaults storing sensitive data" },
+      { id: "m6", text: "Mobile-specific API surface - mobile clients often skip security controls enforced on web (different auth flows, missing rate limits)" },
+      { id: "m7", text: "Debug builds and staging endpoints in production apps - look for BuildConfig.DEBUG flags and alternate base URLs" },
+      { id: "m8", text: "Firebase/Realtime Database exposure - unauthenticated read/write to Firebase databases linked in APK" },
+    ],
+  },
+  {
+    id: "chain",
+    label: "11 // CHAINING & ESCALATION",
+    subtitle: "Informational + informational + informational = critical. This is the job.",
+    items: [
+      { id: "c1",  text: "Open redirect → OAuth token theft chain - redirect to attacker-controlled domain capturing the code/token" },
+      { id: "c2",  text: "Self-XSS → CSRF chain - making self-XSS exploitable by delivering it cross-origin" },
+      { id: "c3",  text: "CORS + auth token exposure → account takeover chain" },
+      { id: "c4",  text: "SSRF → cloud metadata → credential theft → lateral movement" },
+      { id: "c5",  text: "Subdomain takeover → cookie theft via same-site trust" },
+      { id: "c6",  text: "Password reset token + IDOR → reset any account's password" },
+      { id: "c7",  text: "Understanding impact amplification - same vuln in an admin context vs user context is a different payout tier" },
+      { id: "c8",  text: "Recognizing when a low-impact finding is a link in a chain vs a dead end" },
+      { id: "c9",  text: "Prototype pollution → XSS or RCE chain - polluting Object.prototype to inject payload into downstream render or eval" },
+      { id: "c10", text: "Request smuggling → session hijacking - poisoning backend request queue to steal another user's session" },
+    ],
+  },
+  {
+    id: "ai",
+    label: "12 // 2026 AI-ERA CONSIDERATIONS",
+    subtitle: "New attack surface. Most hunters aren't here yet.",
+    items: [
+      { id: "ai1", text: "Prompt injection in LLM-integrated features - direct and indirect (via documents, web content) [→ mk11: build the test suite, mk12: write the methodology post]" },
+      { id: "ai2", text: "LLM output trust - applications that execute or display model output without sanitization" },
+      { id: "ai3", text: "AI-assisted enumeration - using models to surface attack surface you'd miss manually" },
+      { id: "ai4", text: "Identifying AI features in scope - chat interfaces, summarization, code generation, content moderation" },
+      { id: "ai5", text: "Training data exfiltration - extracting sensitive data via crafted prompts in RAG-backed systems [→ mk11: indirect injection via RAG context is a payload category in the test suite]" },
+      { id: "ai6", text: "Understanding what AI tools find automatically vs what requires human business logic comprehension" },
+      { id: "ai7", text: "Reading AI-generated vulnerability reports critically - knowing when the chain is real vs hallucinated" },
+      { id: "ai8", text: "System prompt exfiltration - leaking confidential instructions or internal tool descriptions via injection or jailbreak [→ mk11: jailbreak payloads category, mk12: write the RLHF annotator → red teamer post]" },
+      { id: "ai9", text: "Model SSRF - LLM features that fetch URLs or browse the web should be treated as SSRF vectors; test via prompt injection" },
+    ],
+  },
+  {
+    id: "report",
+    label: "13 // REPORTING & MONETIZATION",
+    subtitle: "Finding it is half. Getting paid is the other half. Most people fail here.",
+    items: [
+      { id: "rep1",  text: "Writing impact statements that answer 'so what' - not what the vuln is, what an attacker does with it [→ mk13: CVE lab breakdown is the live test of this]" },
+      { id: "rep2",  text: "Reproducible PoC - if they can't reproduce it, it didn't happen [→ mk13: CVE lab breakdown requires full reproduction steps with HTTP evidence]" },
+      { id: "rep3",  text: "Severity calibration - understanding CVSS vs program-specific severity vs actual business impact" },
+      { id: "rep4",  text: "Knowing when to request mediation vs accept triage decisions" },
+      { id: "rep5",  text: "Program selection - private vs public, payout history, response time, scope generosity" },
+      { id: "rep6",  text: "Building a reputation on one platform before spreading thin" },
+      { id: "rep7",  text: "Disclosure timelines - 90-day standard, coordinated disclosure etiquette, when to go public" },
+      { id: "rep8",  text: "Tracking findings, targets, and patterns - your own intelligence database" },
+      { id: "rep9",  text: "Duplicate handling - how to differentiate your finding when dup is claimed; different attack vector or different impact chain can reopen it" },
+      { id: "rep10", text: "Severity downgrade pushback - know when to accept it and when to escalate with a concrete impact scenario the triage missed" },
+    ],
+  },
+  {
+    id: "market",
+    label: "14 // JOB MARKET ARTIFACTS",
+    subtitle: "Certs are checked. The gap is a security job title. Build the artifacts that stand in for one.",
+    items: [
+      { id: "mk1",  text: "SOAR-lite - Python alert triage engine: ingest mock SIEM alerts, classify severity, map to MITRE ATT&CK tactic, fire simulated response action. Proves SOC logic without needing enterprise SIEM access. [unlocks: SOC Analyst]" },
+      { id: "mk2",  text: "Elastic SIEM detection lab - deploy Filebeat/Winlogbeat on 2-3 endpoints, write detection rules for OWASP attacks you've already exploited in DVWA, publish rule library to GitHub. [unlocks: SOC, Cloud Security, Threat Intel]" },
+      { id: "mk3",  text: "Blog: Detection engineering for web app attacks - for each OWASP vuln already exploited: show the log pattern, write a Sigma/KQL detection rule, document tuning rationale. Turns offensive knowledge into defensive signal. [unlocks: SOC, Threat Intel]" },
+      { id: "mk4",  text: "NIST CSF 2.0 self-assessment CLI - Python tool that walks NIST CSF controls interactively, scores gaps, outputs HTML + JSON report. Add SOC 2 Trust Service Criteria overlay. Shows GRC tooling instinct. [unlocks: GRC Analyst]" },
+      { id: "mk5",  text: "Blog: Running a SOC 2 gap analysis from scratch - simulated readiness assessment for a fictional SaaS, controls mapped to evidence, remediation plan written as an engagement report. [unlocks: GRC Analyst]" },
+      { id: "mk6",  text: "IOC enrichment pipeline - takes IPs/domains/hashes, enriches via VirusTotal + Shodan + crt.sh + WHOIS, scores by threat confidence, outputs HTML report + STIX 2.1 bundle + MISP-compatible JSON. [unlocks: Threat Intel]" },
+      { id: "mk7",  text: "Blog: Open-source threat intel on $0 - take a C2 IP or phishing domain from a public feed (AbuseIPDB, URLhaus), pull every free data point, map TTPs to MITRE ATT&CK, write as a threat actor profile. [unlocks: Threat Intel]" },
+      { id: "mk8",  text: "AWS misconfig scanner - Python + boto3, audits against CIS AWS Foundations Benchmark v2: public S3 buckets, overpermissioned IAM, exposed security groups, CloudTrail gaps. Scored report with remediation steps. [unlocks: Cloud Security, GRC]" },
+      { id: "mk9",  text: "Blog: 10 AWS misconfigs that keep showing up in bug bounty - crosses offensive recon work with cloud defensive awareness: S3 exposure, IMDSv1 SSRF, overpermissioned instance profiles, secrets in public AMIs. [unlocks: Cloud Security]" },
+      { id: "mk10", text: "IR playbooks as code - structured runbooks for 5 SOC scenarios: phishing, ransomware staging, C2 beacon, credential stuffing, insider exfil. Published as Markdown + Python CLI that prints runbook by scenario name. [unlocks: SOC Analyst, Threat Intel]" },
+      { id: "mk11", text: "Prompt injection test suite - categorized payload library (direct injection, indirect via RAG, jailbreaks, data exfil probes), test runner against any OpenAI-compatible endpoint, response scoring engine. [unlocks: AI Red Team]" },
+      { id: "mk12", text: "Blog: LLM red teaming - from RLHF annotator to adversarial tester. What annotation work revealed about safety gaps, how annotator model intuition maps to red team methodology, 3 injection classes with examples. Unique angle nobody else has. [unlocks: AI Red Team]" },
+      { id: "mk13", text: "CVE lab breakdown - pick a disclosed CVE (auth bypass, IDOR, SSRF, or JWT misuse), reproduce it in Docker or a vulnerable-by-design image, write a full technical breakdown with HTTP evidence, detection logic, and remediation. New work, not recycled material. [unlocks: SOC Analyst, Trust & Safety]" },
+    ],
+  },
+];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let checked = {};
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) checked = JSON.parse(saved);
+} catch {}
+
+const expanded = { recon: true };
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const totalItems = sections.reduce((a, s) => a + s.items.length, 0);
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(checked)); } catch {}
+}
+
+function colorForPct(pct) {
+  if (pct < 20) return '#ff4444';
+  if (pct < 40) return '#ff8800';
+  if (pct < 60) return '#ffcc00';
+  if (pct < 80) return '#88ff44';
+  return '#00ffcc';
+}
+
+function labelForPct(pct) {
+  if (pct < 20) return 'RECON PHASE';
+  if (pct < 40) return 'BUILDING FUNDAMENTALS';
+  if (pct < 60) return 'FINDING LOWS & MEDS';
+  if (pct < 80) return 'CRACKING HIGHS';
+  return 'HITTING CRITICALS';
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render() {
+  const wrap = document.getElementById('sections-wrap');
+  wrap.innerHTML = '';
+
+  sections.forEach(section => {
+    const isOpen = !!expanded[section.id];
+    const sectionChecked = section.items.filter(i => checked[i.id]).length;
+    const sectionPct = Math.round((sectionChecked / section.items.length) * 100);
+    const countColor = sectionPct === 100 ? '#00ffcc' : sectionPct > 50 ? '#88ff44' : '#555';
+    const miniBarColor = sectionPct === 100 ? '#00ffcc' : '#88ff44';
+
+    const block = document.createElement('div');
+    block.className = 'section-block';
+
+    block.innerHTML = `
+      <div class="section-header${isOpen ? ' open' : ''}" data-sid="${section.id}">
+        <div class="section-header-left">
+          <div class="section-label">${section.label}</div>
+          ${isOpen ? `<div class="section-subtitle">${section.subtitle}</div>` : ''}
+          <div class="section-mini-bar-track" style="display:${isOpen && sectionChecked > 0 ? 'block' : 'none'}">
+            <div class="section-mini-bar-fill" style="width:${sectionPct}%; background:${miniBarColor};"></div>
+          </div>
+        </div>
+        <div class="section-header-right">
+          <span class="section-count" style="color:${countColor}">${sectionChecked}/${section.items.length}</span>
+          <span class="section-arrow" style="transform:${isOpen ? 'rotate(90deg)' : 'rotate(0deg)'}">▶</span>
+        </div>
+      </div>
+      <div class="section-items${isOpen ? ' open' : ''}">
+        ${section.items.map((item) => `
+          <div class="item-row${checked[item.id] ? ' checked' : ''}" data-iid="${item.id}">
+            <div class="item-checkbox${checked[item.id] ? ' checked' : ''}">
+              <span class="item-checkmark">✓</span>
+            </div>
+            <div class="item-text">${item.text}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    wrap.appendChild(block);
+  });
+
+  // Section toggle
+  wrap.querySelectorAll('.section-header').forEach(el => {
+    el.addEventListener('click', () => {
+      const sid = el.dataset.sid;
+      expanded[sid] = !expanded[sid];
+      render();
+      updateProgress();
+    });
+  });
+
+  // Item toggle
+  wrap.querySelectorAll('.item-row').forEach(el => {
+    el.addEventListener('click', () => {
+      const iid = el.dataset.iid;
+      checked[iid] = !checked[iid];
+      save();
+      render();
+      updateProgress();
+    });
+  });
+}
+
+function updateProgress() {
+  const totalChecked = Object.values(checked).filter(Boolean).length;
+  const pct = Math.round((totalChecked / totalItems) * 100);
+  const color = colorForPct(pct);
+  const label = labelForPct(pct);
+
+  document.getElementById('pct-display').textContent = pct + '%';
+  document.getElementById('pct-display').style.color = color;
+  document.getElementById('count-display').textContent = totalChecked + '/' + totalItems + ' CONFIRMED';
+  document.getElementById('readiness-label').textContent = label;
+  document.getElementById('readiness-label').style.color = color;
+
+  const bar = document.getElementById('main-bar');
+  bar.style.width = pct + '%';
+  bar.style.background = color;
+  bar.style.boxShadow = '0 0 8px ' + color + '44';
+}
+
+function resetAll() {
+  if (!confirm('Reset all progress?')) return;
+  checked = {};
+  save();
+  render();
+  updateProgress();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+render();
+updateProgress();
+</script>
+</body>
+</html>
