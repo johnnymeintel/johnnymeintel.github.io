@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#0d1117"/>
+  <!-- Border rectangle mark -->
+  <rect x="60" y="60" width="280" height="280" fill="none" stroke="#1d3461" stroke-width="8"/>
+  <!-- Accent bar bottom-left -->
+  <rect x="60" y="298" width="72" height="22" fill="#1d3461"/>
+  <!-- JM letterforms -->
+  <text
+    x="200"
+    y="215"
+    font-family="'IBM Plex Mono', 'Courier New', monospace"
+    font-size="120"
+    font-weight="700"
+    fill="#1d3461"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    letter-spacing="-4"
+  >JM</text>
+</svg>
