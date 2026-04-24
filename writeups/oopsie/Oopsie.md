@@ -73,7 +73,7 @@ curl -i http://$boxip
 - `Server: Apache/2.4.29 (Ubuntu)` - this confirms the same server version result from the Nmap scan.
 - `Content-Type: text/html; charset=UTF-8` - the web page is serving standard HTML instead of being something like a file download page.
 
-![[Findings-1.png]]
+![](images/Findings-1.png)
 
 After visiting the actual web page in Firefox:
 
@@ -82,7 +82,7 @@ After visiting the actual web page in Firefox:
 - The footer exposes `admin@megacorp.com`.
 - The page states that users must log in to access the actual service.
 
-![[Findings-2.png]]
+![](images/Findings-2.png)
 
 After looking through the full HTTP response, `curl -i "http://$boxip" | tail` reveals a critical insight: two URLs that might come in handy later:
 
@@ -91,7 +91,7 @@ After looking through the full HTTP response, `curl -i "http://$boxip" | tail` r
 <script src="/js/index.js"></script>
 ```
 
-![[Findings-3.png]]
+![](images/Findings-3.png)
 
 ---
 
@@ -110,7 +110,7 @@ gobuster dir -u http://$boxip -w /usr/share/wordlists/dirbuster/directory-list-2
 - `-u` sets the target URL to scan.
 - `-w` provides the wordlist file containing the paths Gobuster will test.
 
-![[Findings-4.png]]
+![](images/Findings-4.png)
 
 ```text
 images   (Status: 301)
@@ -132,7 +132,7 @@ ffuf -u http://$boxip/FUZZ -w /usr/share/wordlists/dirbuster/directory-list-2.3-
 - `-w` provides the wordlist file that `ffuf` will iterate through.
 - `-mc` means "match codes" and tells `ffuf` to show only responses with status codes `200`, `301`, `302`, or `403`.
 
-![[Findings-5.png]]
+![](images/Findings-5.png)
 
 ```text
 themes [Status: 301 ...]
@@ -206,7 +206,7 @@ gobuster dir \
 	  - `index.php`
 	  - `notes.txt`
 
-![[Findings-6.png]]
+![](images/Findings-6.png)
 
 ---
 
@@ -219,13 +219,13 @@ First checkpoint question:
 
 Command-line and browser recon established initial paths. Move to **Burp Suite** for *spidering* to discover application-referenced endpoints.
 
-![[Findings-7.png]]
+![](images/Findings-7.png)
 
 There's that `cdn-cgi/login` URL again.
 
 After visiting the web page we are presented with a login portal which contains an option that states `Login as Guest`. After performing a guest login and attempting to access the `Uploads` page from the menu, we are met with a message that says `This action require super admin rights`.
 
-![[Findings-8.png]]
+![](images/Findings-8.png)
 
 **Q2 - What is the path to the directory on the web server that returns a login page?**
 **Answer:** `cdn-cgi/login`
@@ -233,7 +233,7 @@ After visiting the web page we are presented with a login portal which contains 
 **Q3 - What can be modified in Firefox to access the upload page?**
 **Answer:** `cookie`
 
-![[Findings-9.png]]
+![](images/Findings-9.png)
 
 Guest session cookie data is visible in browser developer tools. If the cookie contains client-trusted authorization state, modifying it can grant access to the `Uploads` portal.
 
@@ -241,7 +241,7 @@ Context note: this behavior maps to broken access control. Changing client-contr
 
 Burp Suite has uncovered the URL portion which designates the user session:
 
-![[Findings-10.png]]
+![](images/Findings-10.png)
 
 Attempting to modify the URL directly:
 
@@ -249,7 +249,7 @@ Attempting to modify the URL directly:
 
 Successfully reveals `Access ID 34322` for `admin`.
 
-![[Findings-11.png]]
+![](images/Findings-11.png)
 
 **Q4 - What is the access ID of the admin user?**
 **Answer:** `34322`
@@ -260,11 +260,11 @@ Successfully reveals `Access ID 34322` for `admin`.
 
 Back in browser developer tools, we can edit the `guest` session ID with the admin access ID and then attempt to access `http://10.129.95.191/cdn-cgi/login/admin.php?content=uploads`.
 
-![[Findings-12.png]]
+![](images/Findings-12.png)
 
 `Uploads` page is now accessible. Testing it out by uploading a text file containing the word `Test` produces the success message `The file Test.txt has been uploaded.`
 
-![[Findings-13.png]]
+![](images/Findings-13.png)
 
 **Q5 - After uploading a file, in which directory does it appear on the server?**
 **Answer:** `/uploads`
@@ -321,11 +321,11 @@ nc -lvnp 4444
 
 Upload the file using the web page user interface.
 
-![[Findings-14.png]]
+![](images/Findings-14.png)
 
 After upload, check the `netcat` listener. Reverse shell confirmed.
 
-![[Findings-15.png]]
+![](images/Findings-15.png)
 
 ---
 
@@ -336,7 +336,7 @@ Enumerate directories. Under `/var/www/html/`, the `/cdn-cgi/login` path contain
 **Q6 - Which file contains the password shared with user `robert`?**
 **Answer:** `db.php`
 
-![[Findings-16.png]]
+![](images/Findings-16.png)
 
 ```bash
 $ cat db.php
@@ -383,7 +383,7 @@ id
 ```
 `robert` belongs to the `bugtracker` group.
 
-![[Findings-18.png]]
+![](images/Findings-18.png)
 
 **Q7 - Which executable uses the option `-group bugtracker` to identify files owned by the `bugtracker` group?**
 **Answer:** `find`
@@ -393,7 +393,7 @@ id
 find / -type f -group bugtracker 2>/dev/null
 ```
 
-![[Findings-19.png]]
+![](images/Findings-19.png)
 
 Run `bugtracker` and enter test value `1`:
 
